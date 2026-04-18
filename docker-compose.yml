@@ -1,0 +1,112 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: mindsetlens_postgres
+    environment:
+      POSTGRES_DB: mindsetlens
+      POSTGRES_USER: mindsetlens_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mindsetlens_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: mindsetlens_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mindsetlens_backend
+    command: >
+      bash -c "python manage.py migrate &&
+               python manage.py collectstatic --noinput &&
+               gunicorn mindsetlens.wsgi:application --bind 0.0.0.0:8000 --workers 4"
+    volumes:
+      - ./backend:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - DJANGO_SETTINGS_MODULE=mindsetlens.settings.production
+      - DATABASE_URL=postgresql://mindsetlens_user:${DB_PASSWORD}@postgres:5432/mindsetlens
+      - REDIS_URL=redis://redis:6379/0
+
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mindsetlens_celery
+    command: celery -A mindsetlens worker -l info
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - backend
+    environment:
+      - DJANGO_SETTINGS_MODULE=mindsetlens.settings.production
+      - DATABASE_URL=postgresql://mindsetlens_user:${DB_PASSWORD}@postgres:5432/mindsetlens
+      - REDIS_URL=redis://redis:6379/0
+
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mindsetlens_beat
+    command: celery -A mindsetlens beat -l info
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - backend
+    environment:
+      - DJANGO_SETTINGS_MODULE=mindsetlens.settings.production
+      - DATABASE_URL=postgresql://mindsetlens_user:${DB_PASSWORD}@postgres:5432/mindsetlens
+      - REDIS_URL=redis://redis:6379/0
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mindsetlens_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
