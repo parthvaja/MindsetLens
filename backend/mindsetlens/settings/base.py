@@ -1,8 +1,14 @@
 import os
+import warnings
 from datetime import timedelta
 from pathlib import Path
 
 import environ
+
+# psycopg3's C extension (psycopg_c) may not be available on every platform;
+# psycopg falls back to its pure-Python implementation automatically.
+# This suppresses the UserWarning so it doesn't clutter management command output.
+warnings.filterwarnings('ignore', message=r"couldn't import psycopg")
 
 env = environ.Env(
     DEBUG=(bool, False)

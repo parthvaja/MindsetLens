@@ -1,9 +1,12 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from django.urls import include, path
+from rest_framework.routers import SimpleRouter
 
-# Phase 4: AnalyticsViewSet will be registered here
-router = DefaultRouter()
+from .views import DashboardStatsView, MindsetTrendViewSet
+
+router = SimpleRouter()
+router.register(r'trends', MindsetTrendViewSet, basename='trends')
 
 urlpatterns = [
+    path('dashboard/', DashboardStatsView.as_view(), name='dashboard-stats'),
     path('', include(router.urls)),
 ]

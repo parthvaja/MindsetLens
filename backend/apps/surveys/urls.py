@@ -1,8 +1,10 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from django.urls import include, path
+from rest_framework.routers import SimpleRouter
 
-# Phase 2: SurveyViewSet will be registered here
-router = DefaultRouter()
+from .views import SurveyViewSet
+
+router = SimpleRouter()
+router.register(r'', SurveyViewSet, basename='surveys')
 
 urlpatterns = [
     path('', include(router.urls)),

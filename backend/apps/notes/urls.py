@@ -1,8 +1,10 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from django.urls import include, path
+from rest_framework.routers import SimpleRouter
 
-# Phase 3: TeacherNoteViewSet will be registered here
-router = DefaultRouter()
+from .views import TeacherNoteViewSet
+
+router = SimpleRouter()
+router.register(r'', TeacherNoteViewSet, basename='notes')
 
 urlpatterns = [
     path('', include(router.urls)),

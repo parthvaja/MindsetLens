@@ -1,8 +1,10 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from django.urls import include, path
+from rest_framework.routers import SimpleRouter
 
-# Phase 3: TeachingRecommendationViewSet will be registered here
-router = DefaultRouter()
+from .views import TeachingRecommendationViewSet
+
+router = SimpleRouter()
+router.register(r'', TeachingRecommendationViewSet, basename='recommendations')
 
 urlpatterns = [
     path('', include(router.urls)),
