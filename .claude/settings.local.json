@@ -11,7 +11,9 @@
       "Bash(dir /B \"D:\\\\git\\\\MindsetLens\\\\backend\\\\apps\\\\recommendations\")",
       "Bash(dir /B \"D:\\\\git\\\\MindsetLens\\\\backend\\\\apps\\\\notes\")",
       "Bash(python:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(sed -i 's/text-\\\\[#7c8fa0\\\\]/text-\\\\[#8b949e\\\\]/g' D:/git/MindsetLens/frontend/src/components/charts/TrendChart.tsx D:/git/MindsetLens/frontend/src/components/charts/DonutChart.tsx D:/git/MindsetLens/frontend/src/components/charts/BarChart.tsx)",
+      "Bash(sed -i 's/#7c8fa0/#8b949e/g' D:/git/MindsetLens/frontend/src/components/charts/TrendChart.tsx D:/git/MindsetLens/frontend/src/components/charts/DonutChart.tsx D:/git/MindsetLens/frontend/src/components/charts/BarChart.tsx)"
     ]
   }
 }

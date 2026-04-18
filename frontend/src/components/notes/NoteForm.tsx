@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,7 +7,7 @@ import { toast } from 'react-hot-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createNote } from '@/lib/api/analytics';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import { Calendar, FileText } from 'lucide-react';
 
 const noteSchema = z.object({
   note_text: z.string().min(10, 'Please write at least 10 characters'),
@@ -55,33 +54,38 @@ export default function NoteForm({ studentId, onSuccess }: NoteFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {/* Date */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide mb-2">
+          <Calendar size={11} />
           Observation Date
         </label>
         <input
           type="date"
           max={today}
           {...register('observation_date')}
-          className="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+          className="block w-full rounded-lg bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2.5 text-sm text-[var(--text-primary)] focus:border-indigo-500/40 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+          style={{ colorScheme: 'dark' }}
         />
         {errors.observation_date && (
-          <p className="mt-1 text-xs text-red-500">{errors.observation_date.message}</p>
+          <p className="mt-1 text-xs text-red-400">{errors.observation_date.message}</p>
         )}
       </div>
 
+      {/* Text */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide mb-2">
+          <FileText size={11} />
           Observation
         </label>
         <textarea
           {...register('note_text')}
-          rows={4}
+          rows={5}
           placeholder="Describe what you observed about the student's mindset, effort, reactions to challenges…"
-          className="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none resize-none"
+          className="block w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-4 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-indigo-500/40 focus:ring-2 focus:ring-indigo-500/20 outline-none resize-none transition-all"
         />
         {errors.note_text && (
-          <p className="mt-1 text-xs text-red-500">{errors.note_text.message}</p>
+          <p className="mt-1 text-xs text-red-400">{errors.note_text.message}</p>
         )}
       </div>
 
@@ -93,6 +97,10 @@ export default function NoteForm({ studentId, onSuccess }: NoteFormProps) {
       >
         Save Observation
       </Button>
+
+      <p className="text-[10px] text-[var(--text-muted)] text-center">
+        Saving an observation triggers AI recommendation regeneration
+      </p>
     </form>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { ButtonHTMLAttributes, forwardRef } from 'react';
+import { cn } from '@/lib/utils';
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost';
 type Size = 'sm' | 'md' | 'lg';
@@ -12,41 +13,63 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<Variant, string> = {
-  primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-  secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-blue-500',
-  danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-  ghost: 'text-gray-600 hover:bg-gray-100 focus:ring-gray-400',
+  primary:
+    'bg-indigo-600 text-white hover:bg-indigo-500 active:bg-indigo-700 shadow-lg shadow-indigo-500/20 border border-indigo-500/40',
+  secondary:
+    'bg-[var(--surface-2)] text-[var(--text-primary)] border border-[var(--border)] hover:bg-[var(--surface-3)] hover:border-[var(--surface-3)]',
+  danger:
+    'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20 hover:text-red-300',
+  ghost:
+    'text-[var(--text-secondary)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)] border border-transparent',
 };
 
 const sizeClasses: Record<Size, string> = {
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-4 py-2 text-sm',
-  lg: 'px-6 py-3 text-base',
+  sm: 'px-3 py-1.5 text-xs rounded-md',
+  md: 'px-4 py-2 text-sm rounded-lg',
+  lg: 'px-5 py-2.5 text-sm rounded-lg',
 };
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'primary', size = 'md', loading, disabled, children, className = '', ...props }, ref) => {
+  (
+    {
+      variant = 'primary',
+      size = 'md',
+      loading,
+      disabled,
+      children,
+      className = '',
+      ...props
+    },
+    ref
+  ) => {
     return (
       <button
         ref={ref}
         disabled={disabled || loading}
-        className={[
-          'inline-flex items-center justify-center rounded-lg font-medium',
-          'transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2',
-          'disabled:opacity-50 disabled:cursor-not-allowed',
+        className={cn(
+          'inline-flex items-center justify-center font-medium transition-all duration-150',
+          'focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:ring-offset-1 focus:ring-offset-[var(--bg)]',
+          'disabled:opacity-40 disabled:cursor-not-allowed',
           variantClasses[variant],
           sizeClasses[size],
-          className,
-        ].join(' ')}
+          className
+        )}
         {...props}
       >
         {loading && (
           <svg
-            className="mr-2 h-4 w-4 animate-spin"
+            className="mr-2 h-3.5 w-3.5 animate-spin shrink-0"
             fill="none"
             viewBox="0 0 24 24"
           >
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
             <path
               className="opacity-75"
               fill="currentColor"

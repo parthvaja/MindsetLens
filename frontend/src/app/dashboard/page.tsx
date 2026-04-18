@@ -9,38 +9,47 @@ import { SkeletonCard } from '@/components/ui/Skeleton';
 import DonutChart from '@/components/charts/DonutChart';
 import BarChart from '@/components/charts/BarChart';
 import {
-  UserGroupIcon,
-  ClipboardDocumentCheckIcon,
-  SparklesIcon,
-  ArrowTrendingUpIcon,
-} from '@heroicons/react/24/outline';
+  Users,
+  ClipboardList,
+  TrendingUp,
+  Zap,
+  Plus,
+  ArrowRight,
+  Brain,
+} from 'lucide-react';
 
 function StatCard({
   label,
   value,
   sub,
   icon: Icon,
-  color,
+  gradient,
 }: {
   label: string;
   value: string | number;
   sub?: string;
   icon: React.ElementType;
-  color: string;
+  gradient: string;
 }) {
   return (
-    <Card>
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-gray-500">{label}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-1">{value}</p>
-          {sub && <p className="text-xs text-gray-400 mt-1">{sub}</p>}
+    <div className="relative bg-[var(--surface)] rounded-xl border border-[var(--border)] p-5 overflow-hidden group hover:border-[var(--surface-3)] transition-all duration-200">
+      {/* Subtle gradient bg */}
+      <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${gradient} rounded-xl`} />
+      <div className="relative z-10">
+        <div className="flex items-start justify-between mb-3">
+          <p className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
+            {label}
+          </p>
+          <span className={`p-2 rounded-lg bg-[var(--surface-2)] border border-[var(--border)]`}>
+            <Icon size={14} className="text-[var(--text-secondary)]" />
+          </span>
         </div>
-        <span className={`p-3 rounded-xl ${color}`}>
-          <Icon className="h-6 w-6" />
-        </span>
+        <p className="text-3xl font-bold text-[var(--text-primary)] tabular-nums">{value}</p>
+        {sub && (
+          <p className="text-xs text-[var(--text-muted)] mt-1.5">{sub}</p>
+        )}
       </div>
-    </Card>
+    </div>
   );
 }
 
@@ -54,40 +63,63 @@ export default function DashboardPage() {
 
   const donutData = stats
     ? [
-        { name: 'Growth', value: stats.growth_count,  color: '#10b981' },
-        { name: 'Mixed',  value: stats.mixed_count,   color: '#f59e0b' },
-        { name: 'Fixed',  value: stats.fixed_count,   color: '#ef4444' },
+        { name: 'Growth', value: stats.growth_count, color: '#10b981' },
+        { name: 'Mixed', value: stats.mixed_count, color: '#f59e0b' },
+        { name: 'Fixed', value: stats.fixed_count, color: '#ef4444' },
       ]
     : [];
 
   const barData = stats
     ? [
         { label: 'Growth', value: stats.growth_count, color: '#10b981' },
-        { label: 'Mixed',  value: stats.mixed_count,  color: '#f59e0b' },
-        { label: 'Fixed',  value: stats.fixed_count,  color: '#ef4444' },
+        { label: 'Mixed', value: stats.mixed_count, color: '#f59e0b' },
+        { label: 'Fixed', value: stats.fixed_count, color: '#ef4444' },
         {
           label: 'Unassessed',
           value: stats.total_students - stats.assessed_students,
-          color: '#d1d5db',
+          color: '#3d4e5f',
         },
       ]
     : [];
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Welcome back, {teacher?.first_name ?? 'Teacher'}!
-        </h1>
-        <p className="text-gray-500 mt-1">Here&apos;s your class overview.</p>
+    <div className="space-y-8 animate-fade-in">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Brain size={18} className="text-indigo-400" />
+            <span className="text-xs font-semibold text-indigo-400 uppercase tracking-widest">
+              Dashboard
+            </span>
+          </div>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
+            Welcome back,{' '}
+            <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
+              {teacher?.first_name ?? 'Teacher'}
+            </span>
+          </h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            Here&apos;s your class overview.
+          </p>
+        </div>
+        <Link
+          href="/dashboard/students/new"
+          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-all shadow-lg shadow-indigo-500/20 border border-indigo-500/40"
+        >
+          <Plus size={14} />
+          Add Student
+        </Link>
       </div>
 
       {isLoading ? (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {[1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <SkeletonCard />
             <SkeletonCard />
           </div>
@@ -95,13 +127,13 @@ export default function DashboardPage() {
       ) : (
         <>
           {/* Stat cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
               label="Total Students"
               value={stats?.total_students ?? 0}
               sub={`${stats?.assessed_students ?? 0} assessed`}
-              icon={UserGroupIcon}
-              color="bg-blue-50 text-blue-600"
+              icon={Users}
+              gradient="bg-gradient-to-br from-blue-500/5 to-transparent"
             />
             <StatCard
               label="Average Score"
@@ -111,81 +143,113 @@ export default function DashboardPage() {
                   : '—'
               }
               sub="out of 100"
-              icon={ClipboardDocumentCheckIcon}
-              color="bg-emerald-50 text-emerald-600"
+              icon={ClipboardList}
+              gradient="bg-gradient-to-br from-emerald-500/5 to-transparent"
             />
             <StatCard
               label="Growth Mindset"
               value={stats?.growth_count ?? 0}
               sub={
                 stats && stats.assessed_students > 0
-                  ? `${Math.round((stats.growth_count / stats.assessed_students) * 100)}% of assessed`
+                  ? `${Math.round(
+                      (stats.growth_count / stats.assessed_students) * 100
+                    )}% of assessed`
                   : 'no assessments yet'
               }
-              icon={ArrowTrendingUpIcon}
-              color="bg-purple-50 text-purple-600"
+              icon={TrendingUp}
+              gradient="bg-gradient-to-br from-violet-500/5 to-transparent"
             />
             <StatCard
               label="Recent Assessments"
               value={stats?.recent_assessments ?? 0}
               sub="last 7 days"
-              icon={SparklesIcon}
-              color="bg-amber-50 text-amber-600"
+              icon={Zap}
+              gradient="bg-gradient-to-br from-amber-500/5 to-transparent"
             />
           </div>
 
           {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
-              <h2 className="text-base font-semibold text-gray-800 mb-4">
-                Mindset Distribution
-              </h2>
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+                  Mindset Distribution
+                </h2>
+                {stats && stats.assessed_students > 0 && (
+                  <span className="text-xs text-[var(--text-muted)] bg-[var(--surface-2)] px-2 py-0.5 rounded-full border border-[var(--border)]">
+                    {stats.assessed_students} assessed
+                  </span>
+                )}
+              </div>
               {stats && stats.assessed_students > 0 ? (
                 <DonutChart data={donutData} />
               ) : (
-                <div className="text-center py-12 text-gray-400 text-sm">
-                  No assessments yet. Run surveys to see distribution.
+                <div className="flex flex-col items-center justify-center py-14 text-center">
+                  <div className="w-12 h-12 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center mb-3">
+                    <ClipboardList size={20} className="text-[var(--text-muted)]" />
+                  </div>
+                  <p className="text-sm text-[var(--text-secondary)] mb-1">No assessments yet</p>
+                  <p className="text-xs text-[var(--text-muted)]">
+                    Run surveys to see distribution
+                  </p>
                 </div>
               )}
             </Card>
 
             <Card>
-              <h2 className="text-base font-semibold text-gray-800 mb-4">
-                Students by Mindset
-              </h2>
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+                  Students by Mindset
+                </h2>
+              </div>
               <BarChart data={barData} height={200} unit=" students" />
             </Card>
           </div>
 
           {/* Quick actions */}
           <Card>
-            <h2 className="text-base font-semibold text-gray-800 mb-4">Quick Actions</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-[var(--text-primary)]">Quick Actions</h2>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Link
                 href="/dashboard/students/new"
-                className="flex items-center gap-3 p-4 rounded-xl border border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-colors group"
+                className="group flex items-center justify-between gap-3 p-4 rounded-xl border border-[var(--border)] hover:border-indigo-500/40 hover:bg-indigo-500/5 transition-all"
               >
-                <span className="text-2xl">➕</span>
-                <div>
-                  <p className="font-medium text-gray-700 group-hover:text-blue-700">
-                    Add a Student
-                  </p>
-                  <p className="text-xs text-gray-400">Create a new student profile</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center group-hover:bg-indigo-500/10 group-hover:border-indigo-500/30 transition-all">
+                    <Plus size={16} className="text-[var(--text-muted)] group-hover:text-indigo-400 transition-colors" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-[var(--text-primary)]">
+                      Add a Student
+                    </p>
+                    <p className="text-xs text-[var(--text-muted)]">
+                      Create a new student profile
+                    </p>
+                  </div>
                 </div>
+                <ArrowRight size={14} className="text-[var(--text-muted)] group-hover:text-indigo-400 transition-colors" />
               </Link>
+
               <Link
                 href="/dashboard/students"
-                className="flex items-center gap-3 p-4 rounded-xl border border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-colors group"
+                className="group flex items-center justify-between gap-3 p-4 rounded-xl border border-[var(--border)] hover:border-indigo-500/40 hover:bg-indigo-500/5 transition-all"
               >
-                <span className="text-2xl">📋</span>
-                <div>
-                  <p className="font-medium text-gray-700 group-hover:text-blue-700">
-                    View All Students
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    Manage profiles and run surveys
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center group-hover:bg-indigo-500/10 group-hover:border-indigo-500/30 transition-all">
+                    <Users size={16} className="text-[var(--text-muted)] group-hover:text-indigo-400 transition-colors" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-[var(--text-primary)]">
+                      View All Students
+                    </p>
+                    <p className="text-xs text-[var(--text-muted)]">
+                      Manage profiles and run surveys
+                    </p>
+                  </div>
                 </div>
+                <ArrowRight size={14} className="text-[var(--text-muted)] group-hover:text-indigo-400 transition-colors" />
               </Link>
             </div>
           </Card>

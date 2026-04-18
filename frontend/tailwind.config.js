@@ -8,9 +8,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        bg: '#0d1117',
+        surface: '#161b22',
+        'surface-2': '#21262d',
+        'surface-3': '#30363d',
+        border: '#30363d',
+        accent: '#6366f1',
         primary: {
           50: '#eff6ff',
           100: '#dbeafe',
+          400: '#60a5fa',
           500: '#3b82f6',
           600: '#2563eb',
           700: '#1d4ed8',
@@ -19,6 +26,25 @@ module.exports = {
         growth: '#10b981',
         mixed: '#f59e0b',
         fixed: '#ef4444',
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+      },
+      animation: {
+        'fade-in': 'fadeIn 0.3s ease-out',
+        'slide-up': 'slideUp 0.3s ease-out',
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
       },
     },
   },

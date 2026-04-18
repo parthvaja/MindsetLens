@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SURVEY_QUESTIONS } from '@/lib/utils/constants';
 import { SurveyResult, SurveyResponseItem } from '@/types/survey.types';
 import { submitSurvey } from '@/lib/api/surveys';
 import LikertScale from './LikertScale';
-import Button from '@/components/ui/Button';
+import ProgressIndicator from '@/components/ui/progress-indicator';
 import toast from 'react-hot-toast';
+import { MessageSquare, ListChecks } from 'lucide-react';
 
 interface SurveyFormProps {
   studentId: string;
@@ -14,20 +16,27 @@ interface SurveyFormProps {
   onComplete: (result: SurveyResult) => void;
 }
 
-export default function SurveyForm({ studentId, studentName, onComplete }: SurveyFormProps) {
+// Group 12 questions into 3 sections of 4
+const SECTION_SIZE = 4;
+const TOTAL_SECTIONS = Math.ceil(SURVEY_QUESTIONS.length / SECTION_SIZE);
+
+export default function SurveyForm({
+  studentId,
+  studentName,
+  onComplete,
+}: SurveyFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number | string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentQuestion = SURVEY_QUESTIONS[currentStep];
-  const progress = ((currentStep + 1) / SURVEY_QUESTIONS.length) * 100;
   const currentAnswer = answers[currentQuestion.id];
+  const currentSection = Math.floor(currentStep / SECTION_SIZE) + 1;
 
   const canProceed = (): boolean => {
     if (currentQuestion.type === 'likert') {
       return typeof currentAnswer === 'number';
     }
-    // text — minimum 20 chars
     return typeof currentAnswer === 'string' && currentAnswer.trim().length >= 20;
   };
 
@@ -38,6 +47,12 @@ export default function SurveyForm({ studentId, studentName, onComplete }: Surve
       handleSubmit();
     }
   };
+
+  const handleBack = () => {
+    if (currentStep > 0) setCurrentStep((s) => s - 1);
+  };
+
+  const isLastStep = currentStep === SURVEY_QUESTIONS.length - 1;
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -72,91 +87,109 @@ export default function SurveyForm({ studentId, studentName, onComplete }: Surve
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
-      {/* Header + Progress */}
+    <div className="max-w-2xl mx-auto">
+      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">
+        <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest mb-1">
           Mindset Survey
-        </h1>
-        <p className="text-gray-500 mb-4">For {studentName}</p>
-
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-blue-500 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <span className="text-sm text-gray-500 whitespace-nowrap">
-            {currentStep + 1} / {SURVEY_QUESTIONS.length}
+        </p>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
+          Assessment for{' '}
+          <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
+            {studentName}
           </span>
-        </div>
+        </h1>
+        <p className="text-sm text-[var(--text-muted)] mt-1">
+          Question {currentStep + 1} of {SURVEY_QUESTIONS.length}
+        </p>
       </div>
 
       {/* Question card */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
-            {currentQuestion.type === 'likert' ? 'Multiple Choice' : 'Open Response'}
-          </span>
-        </div>
-
-        <h2 className="text-lg font-semibold text-gray-800 mb-6 leading-relaxed">
-          {currentQuestion.text}
-        </h2>
-
-        {currentQuestion.type === 'likert' ? (
-          <LikertScale
-            questionId={currentQuestion.id}
-            value={currentAnswer as number | undefined}
-            onChange={(v) => setAnswers((prev) => ({ ...prev, [currentQuestion.id]: v }))}
-          />
-        ) : (
-          <div>
-            <textarea
-              value={(currentAnswer as string) || ''}
-              onChange={(e) =>
-                setAnswers((prev) => ({ ...prev, [currentQuestion.id]: e.target.value }))
-              }
-              maxLength={currentQuestion.maxLength}
-              rows={6}
-              placeholder="Type your response here..."
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-blue-500 focus:outline-none resize-none"
-            />
-            <div className="flex justify-between mt-2">
-              <p className="text-xs text-gray-400">
-                {typeof currentAnswer === 'string' && currentAnswer.trim().length < 20 && currentAnswer.length > 0 && (
-                  <span className="text-amber-500">
-                    {20 - currentAnswer.trim().length} more characters needed
-                  </span>
-                )}
-              </p>
-              <p className="text-xs text-gray-400">
-                {typeof currentAnswer === 'string' ? currentAnswer.length : 0} / {currentQuestion.maxLength}
-              </p>
-            </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentStep}
+          initial={{ opacity: 0, y: 10, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -10, scale: 0.98 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+          className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-7 mb-8 shadow-[0_4px_40px_rgba(0,0,0,0.3)]"
+        >
+          {/* Question type badge */}
+          <div className="flex items-center gap-2 mb-5">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+              {currentQuestion.type === 'likert' ? (
+                <>
+                  <ListChecks size={10} />
+                  Multiple Choice
+                </>
+              ) : (
+                <>
+                  <MessageSquare size={10} />
+                  Open Response
+                </>
+              )}
+            </span>
+            <span className="text-[10px] text-[var(--text-muted)]">
+              Section {currentSection} of {TOTAL_SECTIONS}
+            </span>
           </div>
-        )}
-      </div>
 
-      {/* Navigation */}
-      <div className="flex justify-between">
-        <Button
-          variant="secondary"
-          onClick={() => setCurrentStep((s) => s - 1)}
-          disabled={currentStep === 0}
-        >
-          Previous
-        </Button>
+          <h2 className="text-base font-semibold text-[var(--text-primary)] leading-relaxed mb-6">
+            {currentQuestion.text}
+          </h2>
 
-        <Button
-          onClick={handleNext}
-          disabled={!canProceed()}
-          loading={isSubmitting}
-        >
-          {currentStep === SURVEY_QUESTIONS.length - 1 ? 'Submit Survey' : 'Next Question'}
-        </Button>
-      </div>
+          {currentQuestion.type === 'likert' ? (
+            <LikertScale
+              questionId={currentQuestion.id}
+              value={currentAnswer as number | undefined}
+              onChange={(v) =>
+                setAnswers((prev) => ({ ...prev, [currentQuestion.id]: v }))
+              }
+            />
+          ) : (
+            <div>
+              <textarea
+                value={(currentAnswer as string) || ''}
+                onChange={(e) =>
+                  setAnswers((prev) => ({
+                    ...prev,
+                    [currentQuestion.id]: e.target.value,
+                  }))
+                }
+                maxLength={currentQuestion.maxLength}
+                rows={5}
+                placeholder="Type your response here..."
+                className="w-full px-4 py-3 bg-[var(--surface-2)] border border-[var(--border)] rounded-xl text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-indigo-500/40 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none resize-none transition-all"
+              />
+              <div className="flex justify-between mt-2">
+                <p className="text-xs text-[var(--text-muted)]">
+                  {typeof currentAnswer === 'string' &&
+                    currentAnswer.trim().length < 20 &&
+                    currentAnswer.length > 0 && (
+                      <span className="text-amber-400">
+                        {20 - currentAnswer.trim().length} more characters needed
+                      </span>
+                    )}
+                </p>
+                <p className="text-xs text-[var(--text-muted)]">
+                  {typeof currentAnswer === 'string' ? currentAnswer.length : 0} /{' '}
+                  {currentQuestion.maxLength}
+                </p>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Progress indicator */}
+      <ProgressIndicator
+        step={currentSection}
+        totalSteps={TOTAL_SECTIONS}
+        onContinue={handleNext}
+        onBack={handleBack}
+        disabled={!canProceed()}
+        loading={isSubmitting && isLastStep}
+      />
     </div>
   );
 }

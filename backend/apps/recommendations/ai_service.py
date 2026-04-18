@@ -313,6 +313,6 @@ more challenging and open-ended for growth mindset."""
         return (
             'I\'m here to help you support this student. You can ask me things like:\n\n'
             '• "Give me examples for teaching fractions"\n'
-            '• "How do I build rapport with a fixed-mindset student?"\n'
+            '• "How do I build report with a fixed-mindset student?"\n'
             '• "What activities would work for a student who avoids challenges?"'
         )

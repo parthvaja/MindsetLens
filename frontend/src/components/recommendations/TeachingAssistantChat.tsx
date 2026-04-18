@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { chatWithAssistant } from '@/lib/api/analytics';
-import { PaperAirplaneIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { Sparkles, SendHorizonal, X } from 'lucide-react';
 
 interface Message {
   role: 'teacher' | 'assistant';
@@ -16,10 +16,10 @@ interface TeachingAssistantChatProps {
 }
 
 const QUICK_PROMPTS = [
-  { label: 'Topic examples', message: 'Give me examples for teaching this topic', needsTopic: true },
-  { label: 'Build rapport', message: 'How do I build rapport with this student?' },
-  { label: 'Handle frustration', message: 'What do I say when this student gets frustrated and wants to quit?' },
-  { label: 'Praise that works', message: 'What kind of praise works best for this student?' },
+  { label: 'Build rapport', message: 'How do I build a better rapport with this student?' },
+  { label: 'Handle frustration', message: 'What do I say when this student gets frustrated?' },
+  { label: 'Best praise style', message: 'What kind of praise works best for this student?' },
+  { label: 'Challenge approach', message: 'How should I present challenging tasks to this student?' },
 ];
 
 export default function TeachingAssistantChat({
@@ -28,8 +28,6 @@ export default function TeachingAssistantChat({
 }: TeachingAssistantChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [topic, setTopic] = useState('');
-  const [showTopicInput, setShowTopicInput] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const mutation = useMutation({
@@ -38,51 +36,52 @@ export default function TeachingAssistantChat({
     onSuccess: (data, vars) => {
       setMessages((prev) => [
         ...prev,
-        { role: 'teacher', content: vars.topic ? `${vars.message} (topic: ${vars.topic})` : vars.message },
+        { role: 'teacher', content: vars.message },
         { role: 'assistant', content: data.response },
       ]);
       setInput('');
-      setTopic('');
-      setShowTopicInput(false);
       setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
     },
   });
 
-  const send = (overrideMessage?: string, overrideTopic?: string) => {
+  const send = (overrideMessage?: string) => {
     const msg = overrideMessage ?? input.trim();
-    const tpc = overrideTopic ?? (showTopicInput ? topic.trim() : undefined);
     if (!msg) return;
-    mutation.mutate({ message: msg, topic: tpc || undefined });
-  };
-
-  const sendQuick = (prompt: typeof QUICK_PROMPTS[0]) => {
-    if (prompt.needsTopic) {
-      setInput(prompt.message);
-      setShowTopicInput(true);
-    } else {
-      mutation.mutate({ message: prompt.message });
-    }
+    mutation.mutate({ message: msg });
   };
 
   return (
     <div className="flex flex-col">
       {/* Header */}
-      <div className="flex items-center gap-2 mb-3">
-        <SparklesIcon className="h-4 w-4 text-violet-500" />
-        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-          Teaching Assistant
-        </span>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/25 flex items-center justify-center">
+            <Sparkles size={11} className="text-violet-400" />
+          </div>
+          <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-widest">
+            AI Teaching Assistant
+          </span>
+        </div>
+        {messages.length > 0 && (
+          <button
+            onClick={() => setMessages([])}
+            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] flex items-center gap-1 transition-colors"
+          >
+            <X size={11} />
+            Clear
+          </button>
+        )}
       </div>
 
       {/* Quick prompts */}
       {messages.length === 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex flex-wrap gap-1.5 mb-4">
           {QUICK_PROMPTS.map((p) => (
             <button
               key={p.label}
-              onClick={() => sendQuick(p)}
+              onClick={() => send(p.message)}
               disabled={mutation.isPending}
-              className="px-3 py-1.5 rounded-full text-xs font-medium bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition-colors disabled:opacity-50"
+              className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-violet-500/10 text-violet-300 border border-violet-500/20 hover:bg-violet-500/20 transition-all disabled:opacity-50"
             >
               {p.label}
             </button>
@@ -92,17 +91,17 @@ export default function TeachingAssistantChat({
 
       {/* Conversation */}
       {messages.length > 0 && (
-        <div className="space-y-3 mb-4 max-h-72 overflow-y-auto pr-1">
+        <div className="space-y-3 mb-4 max-h-64 overflow-y-auto pr-1">
           {messages.map((m, i) => (
             <div
               key={i}
               className={`flex ${m.role === 'teacher' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
+                className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed whitespace-pre-wrap ${
                   m.role === 'teacher'
-                    ? 'bg-blue-600 text-white rounded-br-sm'
-                    : 'bg-gray-100 text-gray-800 rounded-bl-sm'
+                    ? 'bg-indigo-600 text-white rounded-br-sm shadow-[0_4px_12px_rgba(99,102,241,0.3)]'
+                    : 'bg-[var(--surface-3)] text-[var(--text-secondary)] border border-[var(--border)] rounded-bl-sm'
                 }`}
               >
                 {m.content}
@@ -111,31 +110,16 @@ export default function TeachingAssistantChat({
           ))}
           {mutation.isPending && (
             <div className="flex justify-start">
-              <div className="bg-gray-100 rounded-2xl rounded-bl-sm px-4 py-3">
-                <span className="flex gap-1">
-                  <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                  <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                  <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:300ms]" />
+              <div className="bg-[var(--surface-3)] border border-[var(--border)] rounded-2xl rounded-bl-sm px-4 py-3">
+                <span className="flex gap-1.5">
+                  <span className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce [animation-delay:0ms]" />
+                  <span className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce [animation-delay:150ms]" />
+                  <span className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce [animation-delay:300ms]" />
                 </span>
               </div>
             </div>
           )}
           <div ref={bottomRef} />
-        </div>
-      )}
-
-      {/* Topic input (shown for prompts that need it) */}
-      {showTopicInput && (
-        <div className="mb-2">
-          <input
-            type="text"
-            placeholder="Enter topic (e.g. fractions, photosynthesis, soccer…)"
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && send()}
-            className="w-full rounded-lg border border-violet-300 px-3 py-2 text-sm focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none"
-            autoFocus
-          />
         </div>
       )}
 
@@ -148,25 +132,16 @@ export default function TeachingAssistantChat({
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && send()}
           disabled={mutation.isPending}
-          className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none disabled:opacity-50"
+          className="flex-1 rounded-lg bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2.5 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-indigo-500/40 focus:ring-2 focus:ring-indigo-500/15 outline-none transition-all disabled:opacity-50"
         />
         <button
           onClick={() => send()}
-          disabled={(!input.trim() && !showTopicInput) || mutation.isPending}
-          className="flex-shrink-0 p-2.5 rounded-lg bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          disabled={!input.trim() || mutation.isPending}
+          className="shrink-0 p-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_2px_8px_rgba(99,102,241,0.3)]"
         >
-          <PaperAirplaneIcon className="h-4 w-4" />
+          <SendHorizonal size={14} />
         </button>
       </div>
-
-      {messages.length > 0 && (
-        <button
-          onClick={() => setMessages([])}
-          className="mt-2 text-xs text-gray-400 hover:text-gray-600 text-right self-end"
-        >
-          Clear chat
-        </button>
-      )}
     </div>
   );
 }

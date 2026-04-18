@@ -27,14 +27,14 @@ export default function NotesList({ notes, studentId }: NotesListProps) {
 
   if (notes.length === 0) {
     return (
-      <p className="text-sm text-gray-400 text-center py-6">
-        No observations yet. Add one above to trigger updated AI recommendations.
+      <p className="text-sm text-[var(--text-muted)] text-center py-8">
+        No observations yet. Add one to trigger updated AI recommendations.
       </p>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       {notes.map((note) => (
         <NoteCard
           key={note.id}

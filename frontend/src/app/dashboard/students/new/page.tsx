@@ -7,11 +7,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
 import { createStudent } from '@/lib/api/students';
-import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { GRADE_CHOICES, GENDER_CHOICES } from '@/lib/utils/constants';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ArrowLeft, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 
 const schema = z.object({
@@ -24,6 +23,13 @@ const schema = z.object({
 });
 
 type FormData = z.infer<typeof schema>;
+
+const fieldClass =
+  'block w-full rounded-lg bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-indigo-500/40 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all';
+
+const labelClass = 'block text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide mb-1.5';
+
+const errorClass = 'text-xs text-red-400 mt-1';
 
 export default function NewStudentPage() {
   const router = useRouter();
@@ -46,7 +52,7 @@ export default function NewStudentPage() {
         gender: data.gender as never,
         notes: data.notes,
       });
-      toast.success(`${student.full_name} added successfully!`);
+      toast.success(`${student.full_name} added!`);
       router.push(`/dashboard/students/${student.id}`);
     } catch {
       // error toast from interceptor
@@ -56,83 +62,115 @@ export default function NewStudentPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-xl mx-auto animate-fade-in">
       <Link
         href="/dashboard/students"
-        className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-6"
+        className="inline-flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] mb-6 transition-colors"
       >
-        <ArrowLeftIcon className="h-4 w-4" />
+        <ArrowLeft size={12} />
         Back to Students
       </Link>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Add New Student</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center">
+          <UserPlus size={16} className="text-indigo-400" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-[var(--text-primary)]">Add New Student</h1>
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">
+            Create a student profile to begin assessments
+          </p>
+        </div>
+      </div>
 
       <Card>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="First name"
-              error={errors.first_name?.message}
-              {...register('first_name')}
-            />
-            <Input
-              label="Last name"
-              error={errors.last_name?.message}
-              {...register('last_name')}
-            />
+            <div>
+              <label className={labelClass}>First name</label>
+              <input
+                className={fieldClass}
+                placeholder="Alice"
+                {...register('first_name')}
+              />
+              {errors.first_name && (
+                <p className={errorClass}>{errors.first_name.message}</p>
+              )}
+            </div>
+            <div>
+              <label className={labelClass}>Last name</label>
+              <input
+                className={fieldClass}
+                placeholder="Johnson"
+                {...register('last_name')}
+              />
+              {errors.last_name && (
+                <p className={errorClass}>{errors.last_name.message}</p>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Grade Level</label>
+              <label className={labelClass}>Grade Level</label>
               <select
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={fieldClass}
+                style={{ colorScheme: 'dark' }}
                 {...register('grade_level')}
               >
                 <option value="">Select grade</option>
                 {GRADE_CHOICES.map((g) => (
-                  <option key={g.value} value={g.value}>{g.label}</option>
+                  <option key={g.value} value={g.value}>
+                    {g.label}
+                  </option>
                 ))}
               </select>
             </div>
-            <Input
-              label="Age"
-              type="number"
-              min={4}
-              max={19}
-              error={errors.age?.message}
-              {...register('age')}
-            />
+            <div>
+              <label className={labelClass}>Age</label>
+              <input
+                type="number"
+                min={4}
+                max={19}
+                placeholder="12"
+                className={fieldClass}
+                {...register('age')}
+              />
+              {errors.age && <p className={errorClass}>{errors.age.message}</p>}
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+            <label className={labelClass}>Gender</label>
             <select
-              className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={fieldClass}
+              style={{ colorScheme: 'dark' }}
               {...register('gender')}
             >
               <option value="">Prefer not to say</option>
               {GENDER_CHOICES.map((g) => (
-                <option key={g.value} value={g.value}>{g.label}</option>
+                <option key={g.value} value={g.value}>
+                  {g.label}
+                </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Initial notes (optional)
-            </label>
+            <label className={labelClass}>Initial notes (optional)</label>
             <textarea
               rows={3}
-              className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className={fieldClass}
               placeholder="Any relevant background information..."
               {...register('notes')}
             />
           </div>
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-1">
             <Link href="/dashboard/students" className="flex-1">
-              <Button variant="secondary" className="w-full">Cancel</Button>
+              <Button variant="secondary" className="w-full">
+                Cancel
+              </Button>
             </Link>
             <Button type="submit" loading={loading} className="flex-1">
               Add Student
