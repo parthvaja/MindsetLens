@@ -7,6 +7,7 @@ import { getStudent } from '@/lib/api/students';
 import { getMindsetTrends, getRecommendations, getNotes } from '@/lib/api/analytics';
 import { getSurveys } from '@/lib/api/surveys';
 import Card from '@/components/ui/Card';
+import { SkeletonDetailPage } from '@/components/ui/Skeleton';
 import MindsetBadge from '@/components/students/MindsetBadge';
 import Button from '@/components/ui/Button';
 import TrendChart from '@/components/charts/TrendChart';
@@ -58,14 +59,7 @@ export default function StudentDetailPage() {
     enabled: !!student,
   });
 
-  if (studentLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="h-8 w-48 bg-gray-100 rounded animate-pulse" />
-        <div className="h-48 bg-gray-100 rounded-xl animate-pulse" />
-      </div>
-    );
-  }
+  if (studentLoading) return <SkeletonDetailPage />;
 
   if (!student) {
     return (

@@ -36,7 +36,7 @@ def _get_client():
 class RecommendationGenerator:
     """Generate personalised teaching recommendations using Claude."""
 
-    MODEL = 'claude-sonnet-4-20250514'
+    MODEL = 'claude-haiku-4-5-20251001'
 
     def __init__(self):
         self._client = _get_client()
@@ -78,9 +78,10 @@ class RecommendationGenerator:
             recommendations = json.loads(raw.strip())
             if not isinstance(recommendations, list):
                 raise ValueError('Expected a JSON array')
+            logger.info('Claude returned %d recommendations', len(recommendations))
             return recommendations
         except Exception as exc:
-            logger.error('generate_recommendations failed: %s', exc)
+            logger.error('generate_recommendations failed (%s): %s', type(exc).__name__, exc)
             return self._fallback_recommendations(classification)
 
     def generate_chat_response(
@@ -105,9 +106,11 @@ class RecommendationGenerator:
             student_name, classification, mindset_score, message, topic
         )
         try:
-            return self._call(prompt, max_tokens=800)
+            response = self._call(prompt, max_tokens=800)
+            logger.info('Claude chat response received (%d chars)', len(response))
+            return response
         except Exception as exc:
-            logger.error('generate_chat_response failed: %s', exc)
+            logger.error('generate_chat_response failed (%s): %s', type(exc).__name__, exc)
             return self._fallback_chat(classification, topic)
 
     # ── prompt builders ───────────────────────────────────────────────────────

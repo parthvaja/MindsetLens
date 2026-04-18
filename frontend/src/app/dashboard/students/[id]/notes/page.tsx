@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getStudent } from '@/lib/api/students';
 import { getNotes } from '@/lib/api/analytics';
 import Card from '@/components/ui/Card';
+import { Skeleton } from '@/components/ui/Skeleton';
 import NoteForm from '@/components/notes/NoteForm';
 import NotesList from '@/components/notes/NotesList';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
@@ -27,8 +28,12 @@ export default function StudentNotesPage() {
   if (studentLoading) {
     return (
       <div className="space-y-4">
-        <div className="h-8 w-48 bg-gray-100 rounded animate-pulse" />
-        <div className="h-48 bg-gray-100 rounded-xl animate-pulse" />
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-12 w-72" />
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <Skeleton className="lg:col-span-2 h-64 rounded-xl" />
+          <Skeleton className="lg:col-span-3 h-64 rounded-xl" />
+        </div>
       </div>
     );
   }
