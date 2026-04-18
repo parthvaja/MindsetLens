@@ -153,6 +153,12 @@ CACHES = {
 
 ANTHROPIC_API_KEY = env('ANTHROPIC_API_KEY', default='')
 
+# ── Recommendation dispatch ───────────────────────────────────────────────────
+# When True, recommendations are generated via Celery (requires Redis broker).
+# When False, they are generated synchronously in the same request/process.
+# Override to False in development.py so local dev works without Redis.
+USE_CELERY = True
+
 SPECTACULAR_SETTINGS = {
     'TITLE': 'MindsetLens API',
     'DESCRIPTION': 'AI-powered teacher analytics platform',

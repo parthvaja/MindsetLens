@@ -1,5 +1,10 @@
-from rest_framework import viewsets
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
+from apps.students.models import Student
+
+from .ai_service import RecommendationGenerator
 from .models import TeachingRecommendation
 from .serializers import TeachingRecommendationSerializer
 
@@ -20,3 +25,49 @@ class TeachingRecommendationViewSet(viewsets.ReadOnlyModelViewSet):
             qs = qs.filter(student_id=student_id)
 
         return qs
+
+    @action(detail=False, methods=['post'], url_path='chat')
+    def chat(self, request):
+        """
+        POST /api/recommendations/chat/
+
+        Free-form teaching-assistant chat, optionally tied to a topic.
+
+        Body:
+            student_id  (required) UUID of the student
+            message     (required) teacher's question or request
+            topic       (optional) specific subject topic for example generation
+        """
+        student_id = request.data.get('student_id', '').strip()
+        message = request.data.get('message', '').strip()
+        topic = request.data.get('topic', '').strip() or None
+
+        if not student_id:
+            return Response(
+                {'detail': 'student_id is required.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not message:
+            return Response(
+                {'detail': 'message is required.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            student = Student.objects.get(id=student_id, teacher=request.user)
+        except Student.DoesNotExist:
+            return Response(
+                {'detail': 'Student not found.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        generator = RecommendationGenerator()
+        response_text = generator.generate_chat_response(
+            student_name=student.full_name,
+            classification=student.latest_classification or 'mixed',
+            mindset_score=float(student.latest_mindset_score or 50),
+            message=message,
+            topic=topic,
+        )
+
+        return Response({'response': response_text})

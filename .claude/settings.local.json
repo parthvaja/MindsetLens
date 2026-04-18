@@ -7,7 +7,9 @@
       "Bash(DJANGO_SETTINGS_MODULE=mindsetlens.settings.development /c/Users/Dell/miniconda3/python.exe D:/git/MindsetLens/backend/manage.py makemigrations)",
       "Bash(DJANGO_SETTINGS_MODULE=mindsetlens.settings.development /c/Users/Dell/miniconda3/python.exe D:/git/MindsetLens/backend/manage.py migrate)",
       "Bash(/c/Users/Dell/miniconda3/python.exe:*)",
-      "Bash(DJANGO_SETTINGS_MODULE=mindsetlens.settings.development /c/Users/Dell/miniconda3/python.exe:*)"
+      "Bash(DJANGO_SETTINGS_MODULE=mindsetlens.settings.development /c/Users/Dell/miniconda3/python.exe:*)",
+      "Bash(dir /B \"D:\\\\git\\\\MindsetLens\\\\backend\\\\apps\\\\recommendations\")",
+      "Bash(dir /B \"D:\\\\git\\\\MindsetLens\\\\backend\\\\apps\\\\notes\")"
     ]
   }
 }

@@ -1,7 +1,7 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { getStudent } from '@/lib/api/students';
 import { getMindsetTrends, getRecommendations, getNotes } from '@/lib/api/analytics';
@@ -10,13 +10,20 @@ import Card from '@/components/ui/Card';
 import MindsetBadge from '@/components/students/MindsetBadge';
 import Button from '@/components/ui/Button';
 import TrendChart from '@/components/charts/TrendChart';
-import RecommendationCard from '@/components/recommendations/RecommendationCard';
-import { ArrowLeftIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
+import RecommendationsList from '@/components/recommendations/RecommendationsList';
+import TeachingAssistantChat from '@/components/recommendations/TeachingAssistantChat';
+import NoteCard from '@/components/notes/NoteCard';
+import {
+  ArrowLeftIcon,
+  ArrowPathIcon,
+  ClipboardDocumentListIcon,
+  PencilSquareIcon,
+} from '@heroicons/react/24/outline';
 import { formatDate, formatRelativeDate } from '@/lib/utils/formatters';
 
 export default function StudentDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
+  const queryClient = useQueryClient();
 
   const { data: student, isLoading: studentLoading } = useQuery({
     queryKey: ['student', id],
@@ -29,7 +36,11 @@ export default function StudentDetailPage() {
     enabled: !!student,
   });
 
-  const { data: recsData } = useQuery({
+  const {
+    data: recsData,
+    isLoading: recsLoading,
+    isFetching: recsFetching,
+  } = useQuery({
     queryKey: ['recommendations', id],
     queryFn: () => getRecommendations(id),
     enabled: !!student,
@@ -38,6 +49,12 @@ export default function StudentDetailPage() {
   const { data: surveysData } = useQuery({
     queryKey: ['surveys', id],
     queryFn: () => getSurveys(id),
+    enabled: !!student,
+  });
+
+  const { data: notesData } = useQuery({
+    queryKey: ['notes', id],
+    queryFn: () => getNotes(id),
     enabled: !!student,
   });
 
@@ -64,6 +81,7 @@ export default function StudentDetailPage() {
   const trends = trendsData?.results ?? [];
   const recommendations = recsData?.results ?? [];
   const surveys = surveysData?.results ?? [];
+  const recentNotes = (notesData?.results ?? []).slice(0, 3);
 
   return (
     <div>
@@ -94,12 +112,20 @@ export default function StudentDetailPage() {
           </div>
         </div>
 
-        <Link href={`/dashboard/students/${id}/survey`}>
-          <Button>
-            <ClipboardDocumentListIcon className="h-4 w-4 mr-2" />
-            {student.last_assessed ? 'New Survey' : 'Start Survey'}
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href={`/dashboard/students/${id}/notes`}>
+            <Button variant="secondary">
+              <PencilSquareIcon className="h-4 w-4 mr-2" />
+              Add Observation
+            </Button>
+          </Link>
+          <Link href={`/dashboard/students/${id}/survey`}>
+            <Button>
+              <ClipboardDocumentListIcon className="h-4 w-4 mr-2" />
+              {student.last_assessed ? 'New Survey' : 'Start Survey'}
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -160,7 +186,10 @@ export default function StudentDetailPage() {
               </h2>
               <div className="space-y-2">
                 {surveys.slice(0, 5).map((s) => (
-                  <div key={s.id} className="flex justify-between items-center py-1.5 border-b border-gray-50 last:border-0">
+                  <div
+                    key={s.id}
+                    className="flex justify-between items-center py-1.5 border-b border-gray-50 last:border-0"
+                  >
                     <div>
                       <p className="text-xs font-medium text-gray-700 capitalize">{s.survey_type}</p>
                       <p className="text-xs text-gray-400">{formatDate(s.created_at)}</p>
@@ -172,6 +201,16 @@ export default function StudentDetailPage() {
                   </div>
                 ))}
               </div>
+            </Card>
+          )}
+
+          {/* Profile Notes */}
+          {student.notes && (
+            <Card>
+              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                Profile Notes
+              </h2>
+              <p className="text-sm text-gray-600 leading-relaxed">{student.notes}</p>
             </Card>
           )}
         </div>
@@ -192,35 +231,75 @@ export default function StudentDetailPage() {
               <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
                 Teaching Recommendations
               </h2>
-              {recommendations.length > 0 && (
-                <span className="text-xs text-gray-400">AI-generated</span>
-              )}
+              <div className="flex items-center gap-2">
+                {recommendations.length > 0 && (
+                  <span className="text-xs text-gray-400">AI-generated</span>
+                )}
+                <button
+                  onClick={() =>
+                    queryClient.invalidateQueries({ queryKey: ['recommendations', id] })
+                  }
+                  disabled={recsFetching}
+                  title="Refresh recommendations"
+                  className="p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-40"
+                >
+                  <ArrowPathIcon
+                    className={`h-4 w-4 ${recsFetching ? 'animate-spin' : ''}`}
+                  />
+                </button>
+              </div>
             </div>
 
-            {recommendations.length === 0 ? (
-              <div className="text-center py-8 text-gray-400 text-sm">
-                {student.last_assessed
-                  ? 'Recommendations are being generated…'
-                  : 'Complete a survey to receive AI-generated teaching recommendations.'}
+            <RecommendationsList
+              recommendations={recommendations}
+              lastAssessed={student.last_assessed}
+            />
+
+            {/* Teaching Assistant Chat — shown once a survey exists */}
+            {student.last_assessed && (
+              <>
+                <div className="my-5 border-t border-gray-100" />
+                <TeachingAssistantChat
+                  studentId={id}
+                  studentName={student.first_name}
+                />
+              </>
+            )}
+          </Card>
+
+          {/* Recent Observations */}
+          <Card>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                Recent Observations
+              </h2>
+              <Link
+                href={`/dashboard/students/${id}/notes`}
+                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+              >
+                {recentNotes.length > 0 ? 'View all & add' : 'Add observation'}
+              </Link>
+            </div>
+
+            {recentNotes.length === 0 ? (
+              <div className="text-center py-6 text-gray-400 text-sm">
+                No observations yet.{' '}
+                <Link
+                  href={`/dashboard/students/${id}/notes`}
+                  className="text-blue-600 hover:underline"
+                >
+                  Add one
+                </Link>{' '}
+                to trigger updated AI recommendations.
               </div>
             ) : (
               <div className="space-y-3">
-                {recommendations.map((rec) => (
-                  <RecommendationCard key={rec.id} rec={rec} />
+                {recentNotes.map((note) => (
+                  <NoteCard key={note.id} note={note} />
                 ))}
               </div>
             )}
           </Card>
-
-          {/* Student Notes */}
-          {student.notes && (
-            <Card>
-              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                Profile Notes
-              </h2>
-              <p className="text-sm text-gray-600 leading-relaxed">{student.notes}</p>
-            </Card>
-          )}
         </div>
       </div>
     </div>

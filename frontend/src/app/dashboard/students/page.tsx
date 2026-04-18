@@ -81,7 +81,7 @@ export default function StudentsPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-semibold text-blue-600">
-                    {student.first_name[0]}{student.last_name[0]}
+                    {student.first_name?.[0] || ''}{student.last_name?.[0] || ''}
                   </div>
                   <div>
                     <p className="font-semibold text-gray-900">{student.full_name}</p>

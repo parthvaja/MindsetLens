@@ -16,7 +16,7 @@ export default function MindsetBadge({ classification, score }: MindsetBadgeProp
 
   return (
     <Badge variant={variant}>
-      {label}{score !== undefined && score !== null ? ` · ${score.toFixed(0)}` : ''}
+      {label}{score !== undefined && score !== null ? ` · ${Number(score).toFixed(0)}` : ''}
     </Badge>
   );
 }

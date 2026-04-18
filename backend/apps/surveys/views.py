@@ -6,7 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from apps.analytics.models import MindsetTrend
-from apps.recommendations.tasks import generate_recommendations_async
+from apps.recommendations.dispatch import dispatch_recommendations_for_survey
 from apps.students.models import Student
 
 from .models import SurveyResponse
@@ -90,12 +90,8 @@ class SurveyViewSet(viewsets.ReadOnlyModelViewSet):
             data_source='survey',
         )
 
-        # Kick off async recommendation generation (Phase 3).
-        # Wrapped so a broker/Redis outage never kills the survey submission.
-        try:
-            generate_recommendations_async.delay(str(survey.id))
-        except Exception:
-            pass  # task will be skipped; survey score is already saved
+        # Generate recommendations — sync in dev (USE_CELERY=False), async in prod.
+        dispatch_recommendations_for_survey(str(survey.id))
 
         return Response(
             {

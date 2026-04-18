@@ -38,6 +38,9 @@ AUTH_PASSWORD_VALIDATORS = []
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = False
 
+# Generate AI recommendations synchronously (no Redis/Celery needed locally).
+USE_CELERY = False
+
 # ── Cache ─────────────────────────────────────────────────────────────────────
 # Replace the Redis cache backend with Django's built-in local-memory cache.
 CACHES = {

@@ -39,3 +39,19 @@ export async function createNote(payload: {
   const { data } = await apiClient.post<TeacherNote>('/notes/', payload);
   return data;
 }
+
+export async function deleteNote(noteId: string): Promise<void> {
+  await apiClient.delete(`/notes/${noteId}/`);
+}
+
+export async function chatWithAssistant(payload: {
+  student_id: string;
+  message: string;
+  topic?: string;
+}): Promise<{ response: string }> {
+  const { data } = await apiClient.post<{ response: string }>(
+    '/recommendations/chat/',
+    payload,
+  );
+  return data;
+}
