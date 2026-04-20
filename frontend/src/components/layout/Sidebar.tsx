@@ -6,12 +6,13 @@ import { useAuthStore } from '@/lib/store/authStore';
 import { logout } from '@/lib/api/auth';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { Home, Users, Settings, LogOut, Brain, Sparkles } from 'lucide-react';
+import { Home, Users, Settings, LogOut, Brain, Sparkles, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', Icon: Home },
   { href: '/dashboard/students', label: 'Students', Icon: Users },
+  { href: '/dashboard/study-plans', label: 'Study Plans', Icon: BookOpen },
   { href: '/dashboard/settings', label: 'Settings', Icon: Settings },
 ];
 

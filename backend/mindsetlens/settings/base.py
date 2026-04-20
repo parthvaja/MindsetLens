@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'apps.notes',
     'apps.recommendations',
     'apps.analytics',
+    'apps.studyplans',
 ]
 
 MIDDLEWARE = [

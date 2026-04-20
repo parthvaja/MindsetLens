@@ -16,7 +16,7 @@ interface TeachingAssistantChatProps {
 }
 
 const QUICK_PROMPTS = [
-  { label: 'Build rapport', message: 'How do I build a better rapport with this student?' },
+  { label: 'Build report', message: 'How do I build a better report with this student?' },
   { label: 'Handle frustration', message: 'What do I say when this student gets frustrated?' },
   { label: 'Best praise style', message: 'What kind of praise works best for this student?' },
   { label: 'Challenge approach', message: 'How should I present challenging tasks to this student?' },
