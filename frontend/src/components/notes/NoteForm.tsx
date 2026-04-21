@@ -21,6 +21,11 @@ interface NoteFormProps {
   onSuccess?: () => void;
 }
 
+const fieldClass =
+  'block w-full rounded-lg bg-zinc-800/80 border border-zinc-700 px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-cyan-500/40 focus:ring-2 focus:ring-cyan-500/20 outline-none transition-all';
+
+const labelClass = 'flex items-center gap-1.5 text-xs font-medium text-zinc-400 uppercase tracking-wide mb-2';
+
 export default function NoteForm({ studentId, onSuccess }: NoteFormProps) {
   const queryClient = useQueryClient();
   const today = new Date().toISOString().split('T')[0];
@@ -54,9 +59,8 @@ export default function NoteForm({ studentId, onSuccess }: NoteFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      {/* Date */}
       <div>
-        <label className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide mb-2">
+        <label className={labelClass}>
           <Calendar size={11} />
           Observation Date
         </label>
@@ -64,17 +68,16 @@ export default function NoteForm({ studentId, onSuccess }: NoteFormProps) {
           type="date"
           max={today}
           {...register('observation_date')}
-          className="block w-full rounded-lg bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2.5 text-sm text-[var(--text-primary)] focus:border-indigo-500/40 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+          className={fieldClass}
           style={{ colorScheme: 'dark' }}
         />
         {errors.observation_date && (
-          <p className="mt-1 text-xs text-red-400">{errors.observation_date.message}</p>
+          <p className="mt-1 text-xs text-rose-400">{errors.observation_date.message}</p>
         )}
       </div>
 
-      {/* Text */}
       <div>
-        <label className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide mb-2">
+        <label className={labelClass}>
           <FileText size={11} />
           Observation
         </label>
@@ -82,10 +85,10 @@ export default function NoteForm({ studentId, onSuccess }: NoteFormProps) {
           {...register('note_text')}
           rows={5}
           placeholder="Describe what you observed about the student's mindset, effort, reactions to challenges…"
-          className="block w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-4 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-indigo-500/40 focus:ring-2 focus:ring-indigo-500/20 outline-none resize-none transition-all"
+          className={fieldClass + ' resize-none'}
         />
         {errors.note_text && (
-          <p className="mt-1 text-xs text-red-400">{errors.note_text.message}</p>
+          <p className="mt-1 text-xs text-rose-400">{errors.note_text.message}</p>
         )}
       </div>
 
@@ -93,12 +96,13 @@ export default function NoteForm({ studentId, onSuccess }: NoteFormProps) {
         type="submit"
         disabled={mutation.isPending}
         loading={mutation.isPending}
+        variant="primary"
         className="w-full"
       >
         Save Observation
       </Button>
 
-      <p className="text-[10px] text-[var(--text-muted)] text-center">
+      <p className="text-[10px] text-zinc-600 text-center">
         Saving an observation triggers AI recommendation regeneration
       </p>
     </form>

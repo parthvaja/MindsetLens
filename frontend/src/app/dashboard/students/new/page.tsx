@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { createStudent } from '@/lib/api/students';
 import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
 import { GRADE_CHOICES, GENDER_CHOICES } from '@/lib/utils/constants';
 import { ArrowLeft, UserPlus } from 'lucide-react';
 import Link from 'next/link';
@@ -25,21 +25,18 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const fieldClass =
-  'block w-full rounded-lg bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-indigo-500/40 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all';
+  'block w-full rounded-lg bg-zinc-800/80 border border-zinc-700 px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-cyan-500/40 focus:ring-2 focus:ring-cyan-500/20 outline-none transition-all';
 
-const labelClass = 'block text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide mb-1.5';
-
-const errorClass = 'text-xs text-red-400 mt-1';
+const labelClass = 'block text-xs font-medium text-zinc-400 uppercase tracking-wide mb-1.5';
+const errorClass = 'text-xs text-rose-400 mt-1';
 
 export default function NewStudentPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormData>({ resolver: zodResolver(schema) });
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  });
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
@@ -62,96 +59,68 @@ export default function NewStudentPage() {
   };
 
   return (
-    <div className="max-w-xl mx-auto animate-fade-in">
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="max-w-xl mx-auto"
+    >
       <Link
         href="/dashboard/students"
-        className="inline-flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] mb-6 transition-colors"
+        className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 mb-6 transition-colors"
       >
         <ArrowLeft size={12} />
         Back to Students
       </Link>
 
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center">
-          <UserPlus size={16} className="text-indigo-400" />
+        <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
+          <UserPlus size={18} className="text-cyan-400" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-[var(--text-primary)]">Add New Student</h1>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">
-            Create a student profile to begin assessments
-          </p>
+          <h1 className="text-xl font-heading font-semibold text-zinc-50">Add New Student</h1>
+          <p className="text-xs text-zinc-500 mt-0.5">Create a student profile to begin assessments</p>
         </div>
       </div>
 
-      <Card>
+      <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>First name</label>
-              <input
-                className={fieldClass}
-                placeholder="Alice"
-                {...register('first_name')}
-              />
-              {errors.first_name && (
-                <p className={errorClass}>{errors.first_name.message}</p>
-              )}
+              <input className={fieldClass} placeholder="Alice" {...register('first_name')} />
+              {errors.first_name && <p className={errorClass}>{errors.first_name.message}</p>}
             </div>
             <div>
               <label className={labelClass}>Last name</label>
-              <input
-                className={fieldClass}
-                placeholder="Johnson"
-                {...register('last_name')}
-              />
-              {errors.last_name && (
-                <p className={errorClass}>{errors.last_name.message}</p>
-              )}
+              <input className={fieldClass} placeholder="Johnson" {...register('last_name')} />
+              {errors.last_name && <p className={errorClass}>{errors.last_name.message}</p>}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Grade Level</label>
-              <select
-                className={fieldClass}
-                style={{ colorScheme: 'dark' }}
-                {...register('grade_level')}
-              >
+              <select className={fieldClass} style={{ colorScheme: 'dark' }} {...register('grade_level')}>
                 <option value="">Select grade</option>
                 {GRADE_CHOICES.map((g) => (
-                  <option key={g.value} value={g.value}>
-                    {g.label}
-                  </option>
+                  <option key={g.value} value={g.value}>{g.label}</option>
                 ))}
               </select>
             </div>
             <div>
               <label className={labelClass}>Age</label>
-              <input
-                type="number"
-                min={4}
-                max={19}
-                placeholder="12"
-                className={fieldClass}
-                {...register('age')}
-              />
+              <input type="number" min={4} max={19} placeholder="12" className={fieldClass} {...register('age')} />
               {errors.age && <p className={errorClass}>{errors.age.message}</p>}
             </div>
           </div>
 
           <div>
             <label className={labelClass}>Gender</label>
-            <select
-              className={fieldClass}
-              style={{ colorScheme: 'dark' }}
-              {...register('gender')}
-            >
+            <select className={fieldClass} style={{ colorScheme: 'dark' }} {...register('gender')}>
               <option value="">Prefer not to say</option>
               {GENDER_CHOICES.map((g) => (
-                <option key={g.value} value={g.value}>
-                  {g.label}
-                </option>
+                <option key={g.value} value={g.value}>{g.label}</option>
               ))}
             </select>
           </div>
@@ -168,16 +137,14 @@ export default function NewStudentPage() {
 
           <div className="flex gap-3 pt-1">
             <Link href="/dashboard/students" className="flex-1">
-              <Button variant="secondary" className="w-full">
-                Cancel
-              </Button>
+              <Button variant="secondary" className="w-full">Cancel</Button>
             </Link>
-            <Button type="submit" loading={loading} className="flex-1">
+            <Button type="submit" loading={loading} variant="primary" className="flex-1">
               Add Student
             </Button>
           </div>
         </form>
-      </Card>
-    </div>
+      </div>
+    </motion.div>
   );
 }

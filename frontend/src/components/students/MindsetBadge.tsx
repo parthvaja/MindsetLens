@@ -10,21 +10,18 @@ interface MindsetBadgeProps {
 const config = {
   growth: {
     label: 'Growth',
-    classes:
-      'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 shadow-[0_0_10px_rgba(16,185,129,0.12)]',
-    dot: 'bg-emerald-400',
+    classes: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25',
+    dot: 'bg-emerald-400 shadow-[0_0_5px_rgba(16,185,129,0.8)]',
   },
   mixed: {
     label: 'Mixed',
-    classes:
-      'bg-amber-500/10 text-amber-400 border border-amber-500/25 shadow-[0_0_10px_rgba(245,158,11,0.12)]',
-    dot: 'bg-amber-400',
+    classes: 'bg-amber-500/10 text-amber-400 border border-amber-500/25',
+    dot: 'bg-amber-400 shadow-[0_0_5px_rgba(245,158,11,0.8)]',
   },
   fixed: {
     label: 'Fixed',
-    classes:
-      'bg-red-500/10 text-red-400 border border-red-500/25 shadow-[0_0_10px_rgba(239,68,68,0.12)]',
-    dot: 'bg-red-400',
+    classes: 'bg-rose-500/10 text-rose-400 border border-rose-500/25',
+    dot: 'bg-rose-400 shadow-[0_0_5px_rgba(244,63,94,0.8)]',
   },
 };
 
@@ -35,14 +32,13 @@ export default function MindsetBadge({
 }: MindsetBadgeProps) {
   if (!classification) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--surface-2)] text-[var(--text-muted)] border border-[var(--border)]">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-800 text-zinc-500 border border-zinc-700">
         Not assessed
       </span>
     );
   }
 
   const cfg = config[classification];
-  const label = cfg.label;
 
   return (
     <span
@@ -52,8 +48,8 @@ export default function MindsetBadge({
         cfg.classes
       )}
     >
-      <span className={cn('w-1.5 h-1.5 rounded-full', cfg.dot)} />
-      {label}
+      <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', cfg.dot)} />
+      {cfg.label}
       {score !== undefined && score !== null ? ` · ${Number(score).toFixed(0)}` : ''}
     </span>
   );

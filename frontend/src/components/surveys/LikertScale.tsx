@@ -2,6 +2,7 @@
 
 import { LIKERT_OPTIONS } from '@/lib/utils/constants';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface LikertScaleProps {
   questionId: string;
@@ -11,27 +12,30 @@ interface LikertScaleProps {
 
 export default function LikertScale({ questionId, value, onChange }: LikertScaleProps) {
   return (
-    <div className="space-y-2.5">
-      {LIKERT_OPTIONS.map((option) => {
+    <div className="space-y-2">
+      {LIKERT_OPTIONS.map((option, idx) => {
         const selected = value === option.value;
         return (
-          <button
+          <motion.button
             key={option.value}
             type="button"
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.2, delay: idx * 0.04 }}
             onClick={() => onChange(option.value)}
             className={cn(
-              'w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border text-left transition-all duration-150',
+              'w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border text-left transition-all duration-150 active:scale-[0.99]',
               selected
-                ? 'border-indigo-500/50 bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.1)]'
-                : 'border-[var(--border)] bg-[var(--surface-2)] hover:border-indigo-500/30 hover:bg-[var(--surface-3)]'
+                ? 'border-cyan-500/50 bg-cyan-500/8 shadow-[0_0_20px_rgba(6,182,212,0.08)]'
+                : 'border-zinc-800 bg-zinc-800/50 hover:border-zinc-700 hover:bg-zinc-800'
             )}
           >
             <span
               className={cn(
                 'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border shrink-0 transition-all',
                 selected
-                  ? 'border-indigo-500 bg-indigo-600 text-white shadow-[0_0_10px_rgba(99,102,241,0.4)]'
-                  : 'border-[var(--surface-3)] text-[var(--text-muted)] bg-[var(--surface)]'
+                  ? 'border-cyan-500 bg-cyan-500 text-zinc-950 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
+                  : 'border-zinc-700 text-zinc-500 bg-zinc-900'
               )}
             >
               {option.value}
@@ -39,15 +43,19 @@ export default function LikertScale({ questionId, value, onChange }: LikertScale
             <span
               className={cn(
                 'text-sm font-medium transition-colors',
-                selected ? 'text-indigo-300' : 'text-[var(--text-secondary)]'
+                selected ? 'text-cyan-300' : 'text-zinc-400'
               )}
             >
               {option.label}
             </span>
             {selected && (
-              <span className="ml-auto w-2 h-2 rounded-full bg-indigo-400 shadow-[0_0_6px_rgba(99,102,241,0.8)]" />
+              <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="ml-auto w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(6,182,212,0.8)]"
+              />
             )}
-          </button>
+          </motion.button>
         );
       })}
     </div>

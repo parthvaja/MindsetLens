@@ -84,16 +84,25 @@ class StudyPlanViewSet(viewsets.ReadOnlyModelViewSet):
         # --- Build per-student context dicts ---
         students_data = []
         for student in students:
-            recent_notes = list(
+            # Fetch ALL observations, newest first, with their dates so Claude
+            # can use the full behavioural history to personalise every example.
+            all_observations = list(
                 TeacherNote.objects.filter(student=student)
                 .order_by('-observation_date')
-                .values_list('note_text', flat=True)[:3]
+                .values('note_text', 'observation_date')
             )
+            observations = [
+                {
+                    'date': str(obs['observation_date']),
+                    'text': obs['note_text'],
+                }
+                for obs in all_observations
+            ]
             students_data.append({
                 'name': student.full_name,
                 'mindset_score': float(student.latest_mindset_score or 50),
                 'classification': student.latest_classification or 'mixed',
-                'recent_notes': recent_notes,
+                'observations': observations,
             })
 
         # --- Call AI ---
@@ -146,19 +155,28 @@ class StudyPlanViewSet(viewsets.ReadOnlyModelViewSet):
 
         conversation_history = request.data.get('conversation_history', [])
 
-        # Re-fetch student context for the chat system prompt.
+        # Re-fetch student context — include all observations so the chatbot
+        # can suggest interest-based alternatives and flag sensitivities.
         students = Student.objects.filter(
             id__in=plan.student_ids,
             teacher=request.user,
         )
-        students_data = [
-            {
+        students_data = []
+        for s in students:
+            all_observations = list(
+                TeacherNote.objects.filter(student=s)
+                .order_by('-observation_date')
+                .values('note_text', 'observation_date')
+            )
+            students_data.append({
                 'name': s.full_name,
                 'mindset_score': float(s.latest_mindset_score or 50),
                 'classification': s.latest_classification or 'mixed',
-            }
-            for s in students
-        ]
+                'observations': [
+                    {'date': str(obs['observation_date']), 'text': obs['note_text']}
+                    for obs in all_observations
+                ],
+            })
 
         generator = StudyPlanGenerator()
         response_text = generator.generate_chat_response(

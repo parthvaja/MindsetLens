@@ -1,7 +1,8 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from 'react-hot-toast';
+import { ThemeProvider } from 'next-themes';
+import { Toaster } from 'sonner';
 import { useState } from 'react';
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -15,28 +16,28 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: '#181c23',
-            color: '#e2e8f0',
-            border: '1px solid #1e2330',
-            borderRadius: '10px',
-            fontSize: '13px',
-            boxShadow: '0 8px 30px rgba(0,0,0,0.4)',
-          },
-          success: {
-            iconTheme: { primary: '#10b981', secondary: '#181c23' },
-          },
-          error: {
-            iconTheme: { primary: '#ef4444', secondary: '#181c23' },
-          },
-        }}
-      />
-    </QueryClientProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="dark"
+      enableSystem={false}
+      disableTransitionOnChange
+    >
+      <QueryClientProvider client={queryClient}>
+        {children}
+        <Toaster
+          position="top-right"
+          theme="dark"
+          toastOptions={{
+            style: {
+              background: '#18181b',
+              color: '#fafafa',
+              border: '1px solid #27272a',
+              borderRadius: '10px',
+              fontSize: '13px',
+            },
+          }}
+        />
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }

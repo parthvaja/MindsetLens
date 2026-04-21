@@ -3,16 +3,16 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getStudents } from '@/lib/api/students';
 import { generateStudyPlan } from '@/lib/api/studyplans';
 import MindsetBadge from '@/components/students/MindsetBadge';
 import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
 import { SkeletonStudentRow, SkeletonTable } from '@/components/ui/Skeleton';
 import {
   Search, Plus, LayoutGrid, Table2, ChevronRight,
-  BookOpen, X, Loader2, CheckSquare,
+  BookOpen, X, Loader2, Users, SlidersHorizontal,
 } from 'lucide-react';
 import { formatRelativeDate } from '@/lib/utils/formatters';
 import { Student } from '@/types/student.types';
@@ -22,16 +22,12 @@ import toast from 'react-hot-toast';
 type FilterType = 'all' | 'growth' | 'mixed' | 'fixed' | 'unassessed';
 type ViewMode = 'card' | 'table';
 
-const FILTER_TABS: {
-  key: FilterType;
-  label: string;
-  activeClass: string;
-}[] = [
-  { key: 'all', label: 'All', activeClass: 'bg-[var(--surface-2)] text-[var(--text-primary)] border-[var(--surface-3)]' },
-  { key: 'growth', label: 'Growth', activeClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25' },
-  { key: 'mixed', label: 'Mixed', activeClass: 'bg-amber-500/10 text-amber-400 border-amber-500/25' },
-  { key: 'fixed', label: 'Fixed', activeClass: 'bg-red-500/10 text-red-400 border-red-500/25' },
-  { key: 'unassessed', label: 'Unassessed', activeClass: 'bg-[var(--surface-2)] text-[var(--text-secondary)] border-[var(--surface-3)]' },
+const FILTER_TABS: { key: FilterType; label: string; dot?: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'growth', label: 'Growth', dot: 'bg-emerald-400' },
+  { key: 'mixed', label: 'Mixed', dot: 'bg-amber-400' },
+  { key: 'fixed', label: 'Fixed', dot: 'bg-rose-400' },
+  { key: 'unassessed', label: 'Unassessed' },
 ];
 
 const DURATION_OPTIONS = [
@@ -45,6 +41,28 @@ function filterStudents(students: Student[], filter: FilterType): Student[] {
   if (filter === 'all') return students;
   if (filter === 'unassessed') return students.filter((s) => !s.last_assessed);
   return students.filter((s) => s.latest_classification === filter);
+}
+
+const STUDENT_COLOR_CLASSES = [
+  { bg: 'from-cyan-500/20 to-sky-500/20', border: 'border-cyan-500/20', text: 'text-cyan-300' },
+  { bg: 'from-emerald-500/20 to-teal-500/20', border: 'border-emerald-500/20', text: 'text-emerald-300' },
+  { bg: 'from-amber-500/20 to-orange-500/20', border: 'border-amber-500/20', text: 'text-amber-300' },
+  { bg: 'from-violet-500/20 to-purple-500/20', border: 'border-violet-500/20', text: 'text-violet-300' },
+  { bg: 'from-rose-500/20 to-pink-500/20', border: 'border-rose-500/20', text: 'text-rose-300' },
+];
+
+function StudentAvatar({ student, index = 0, size = 10 }: { student: Student; index?: number; size?: number }) {
+  const colors = STUDENT_COLOR_CLASSES[index % STUDENT_COLOR_CLASSES.length];
+  return (
+    <div
+      className={cn(
+        `w-${size} h-${size} rounded-xl bg-gradient-to-br border flex items-center justify-center font-semibold text-sm shrink-0`,
+        colors.bg, colors.border, colors.text
+      )}
+    >
+      {student.first_name?.[0]}{student.last_name?.[0]}
+    </div>
+  );
 }
 
 // ── Study Plan Modal ──────────────────────────────────────────────────────────
@@ -61,9 +79,7 @@ function StudyPlanModal({ selectedStudents, onClose, onSuccess }: StudyPlanModal
   const [contextNotes, setContextNotes] = useState('');
   const topicRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    topicRef.current?.focus();
-  }, []);
+  useEffect(() => { topicRef.current?.focus(); }, []);
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -73,21 +89,13 @@ function StudyPlanModal({ selectedStudents, onClose, onSuccess }: StudyPlanModal
         duration_minutes: duration,
         context_notes: contextNotes,
       }),
-    onSuccess: (plan) => {
-      toast.success('Study plan generated!');
-      onSuccess(plan.id);
-    },
-    onError: () => {
-      toast.error('Failed to generate study plan. Please try again.');
-    },
+    onSuccess: (plan) => { toast.success('Study plan generated!'); onSuccess(plan.id); },
+    onError: () => toast.error('Failed to generate study plan.'),
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!topic.trim()) {
-      toast.error('Please enter a topic.');
-      return;
-    }
+    if (!topic.trim()) { toast.error('Please enter a topic.'); return; }
     mutation.mutate();
   };
 
@@ -96,43 +104,43 @@ function StudyPlanModal({ selectedStudents, onClose, onSuccess }: StudyPlanModal
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget && !mutation.isPending) onClose(); }}
     >
-      <div className="w-full max-w-md bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-2xl animate-fade-in">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-[var(--border)]">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 8 }}
+        transition={{ duration: 0.2 }}
+        className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl"
+      >
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-zinc-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/25 flex items-center justify-center">
-              <BookOpen size={14} className="text-indigo-400" />
+            <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center">
+              <BookOpen size={14} className="text-cyan-400" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-[var(--text-primary)]">Create Study Plan</h2>
-              <p className="text-[11px] text-[var(--text-muted)]">
-                AI-personalised for {selectedStudents.length} students
-              </p>
+              <h2 className="text-sm font-bold text-zinc-50">Create Study Plan</h2>
+              <p className="text-[11px] text-zinc-500">AI-personalised for {selectedStudents.length} students</p>
             </div>
           </div>
           <button
             onClick={onClose}
             disabled={mutation.isPending}
-            className="p-1.5 rounded-lg text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text-secondary)] transition-all disabled:opacity-40"
+            className="p-1.5 rounded-lg text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300 transition-all disabled:opacity-40"
           >
             <X size={14} />
           </button>
         </div>
 
-        {/* Selected students */}
-        <div className="px-6 py-3 border-b border-[var(--border)]">
-          <p className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-widest mb-2">
-            Selected Students
-          </p>
+        <div className="px-6 py-3 border-b border-zinc-800">
+          <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2">Selected Students</p>
           <div className="flex flex-wrap gap-1.5">
             {selectedStudents.map((s, i) => {
-              const colors = STUDENT_COLOR_CLASSES[i % STUDENT_COLOR_CLASSES.length];
+              const c = STUDENT_COLOR_CLASSES[i % STUDENT_COLOR_CLASSES.length];
               return (
                 <span
                   key={s.id}
                   className={cn(
-                    'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border',
-                    colors.bg, colors.text, colors.border,
+                    'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border bg-gradient-to-r',
+                    c.bg, c.text, c.border
                   )}
                 >
                   {s.full_name}
@@ -142,11 +150,10 @@ function StudyPlanModal({ selectedStudents, onClose, onSuccess }: StudyPlanModal
           </div>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
-              Topic <span className="text-red-400">*</span>
+            <label className="block text-xs font-semibold text-zinc-400 mb-1.5">
+              Topic <span className="text-rose-400">*</span>
             </label>
             <input
               ref={topicRef}
@@ -155,83 +162,73 @@ function StudyPlanModal({ selectedStudents, onClose, onSuccess }: StudyPlanModal
               onChange={(e) => setTopic(e.target.value)}
               placeholder="e.g. Fractions, Quadratic Equations…"
               disabled={mutation.isPending}
-              className="w-full px-3.5 py-2.5 bg-[var(--surface-2)] border border-[var(--border)] rounded-xl text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/40 transition-all disabled:opacity-50"
+              className="w-full px-3.5 py-2.5 bg-zinc-800 border border-zinc-700 rounded-xl text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500/40 transition-all disabled:opacity-50"
             />
           </div>
-
           <div>
-            <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
-              Session Duration
-            </label>
+            <label className="block text-xs font-semibold text-zinc-400 mb-1.5">Session Duration</label>
             <select
               value={duration}
               onChange={(e) => setDuration(Number(e.target.value))}
               disabled={mutation.isPending}
-              className="w-full px-3.5 py-2.5 bg-[var(--surface-2)] border border-[var(--border)] rounded-xl text-sm text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/40 transition-all disabled:opacity-50"
+              className="w-full px-3.5 py-2.5 bg-zinc-800 border border-zinc-700 rounded-xl text-sm text-zinc-300 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500/40 transition-all disabled:opacity-50"
             >
               {DURATION_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
           </div>
-
           <div>
-            <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
-              Additional Context <span className="text-[var(--text-muted)]">(optional)</span>
+            <label className="block text-xs font-semibold text-zinc-400 mb-1.5">
+              Additional Context <span className="text-zinc-600">(optional)</span>
             </label>
             <textarea
               value={contextNotes}
               onChange={(e) => setContextNotes(e.target.value)}
-              placeholder="Any specific goals, prior knowledge gaps, or classroom context…"
+              placeholder="Goals, prior knowledge gaps, classroom context…"
               rows={3}
               disabled={mutation.isPending}
-              className="w-full px-3.5 py-2.5 bg-[var(--surface-2)] border border-[var(--border)] rounded-xl text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/40 transition-all resize-none disabled:opacity-50"
+              className="w-full px-3.5 py-2.5 bg-zinc-800 border border-zinc-700 rounded-xl text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500/40 transition-all resize-none disabled:opacity-50"
             />
           </div>
-
           <div className="flex gap-3 pt-1">
             <button
               type="button"
               onClick={onClose}
               disabled={mutation.isPending}
-              className="flex-1 py-2.5 rounded-xl border border-[var(--border)] text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-2)] transition-all disabled:opacity-50"
+              className="flex-1 py-2.5 rounded-xl border border-zinc-700 text-sm font-medium text-zinc-400 hover:bg-zinc-800 transition-all disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!topic.trim() || mutation.isPending}
-              className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_2px_8px_rgba(99,102,241,0.35)] flex items-center justify-center gap-2"
+              className="flex-1 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_2px_8px_rgba(6,182,212,0.3)] flex items-center justify-center gap-2 active:scale-[0.98]"
             >
               {mutation.isPending ? (
-                <>
-                  <Loader2 size={13} className="animate-spin" />
-                  Generating…
-                </>
+                <><Loader2 size={13} className="animate-spin" />Generating…</>
               ) : (
-                <>
-                  <BookOpen size={13} />
-                  Generate Plan
-                </>
+                <><BookOpen size={13} />Generate Plan</>
               )}
             </button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }
 
-// Student colour palette (cycles if more than 5 selected)
-const STUDENT_COLOR_CLASSES = [
-  { bg: 'bg-indigo-500/15',  text: 'text-indigo-300',  border: 'border-indigo-500/25'  },
-  { bg: 'bg-emerald-500/15', text: 'text-emerald-300', border: 'border-emerald-500/25' },
-  { bg: 'bg-amber-500/15',   text: 'text-amber-300',   border: 'border-amber-500/25'   },
-  { bg: 'bg-violet-500/15',  text: 'text-violet-300',  border: 'border-violet-500/25'  },
-  { bg: 'bg-rose-500/15',    text: 'text-rose-300',    border: 'border-rose-500/25'    },
-];
-
 // ── Main Page ─────────────────────────────────────────────────────────────────
+
+const listVariants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.04 } },
+};
+
+const rowVariants = {
+  hidden: { opacity: 0, y: 6 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+};
 
 export default function StudentsPage() {
   const router = useRouter();
@@ -280,17 +277,28 @@ export default function StudentsPage() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-6"
+    >
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Students</h1>
-          <p className="text-sm text-[var(--text-muted)] mt-0.5">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="w-5 h-5 rounded-md bg-zinc-800 flex items-center justify-center">
+              <Users size={11} className="text-zinc-400" />
+            </div>
+            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Students</span>
+          </div>
+          <h1 className="text-[28px] font-heading font-semibold text-zinc-50 tracking-tight leading-none">
+            Students
+          </h1>
+          <p className="text-sm text-zinc-500 mt-1">
             {shown.length} of {totalCount} student{totalCount !== 1 ? 's' : ''}
             {selectedIds.size > 0 && (
-              <span className="ml-2 text-indigo-400 font-medium">
-                · {selectedIds.size} selected
-              </span>
+              <span className="ml-2 text-cyan-400 font-medium">· {selectedIds.size} selected</span>
             )}
           </p>
         </div>
@@ -298,56 +306,49 @@ export default function StudentsPage() {
           {selectedIds.size > 0 && (
             <button
               onClick={clearSelection}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-2)] border border-[var(--border)] transition-all"
+              className="flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 border border-zinc-700 transition-all"
             >
-              <X size={12} />
-              Clear
+              <X size={12} />Clear
             </button>
           )}
           <Link href="/dashboard/students/new">
-            <Button>
-              <Plus size={14} className="mr-1.5" />
-              Add Student
+            <Button variant="primary" size="md">
+              <Plus size={14} />Add Student
             </Button>
           </Link>
         </div>
       </div>
 
       {/* Search + controls */}
-      <div className="flex gap-2.5">
+      <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search
-            size={14}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
-          />
+          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
           <input
             type="text"
             placeholder="Search by name…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/40 transition-all"
+            className="w-full pl-10 pr-4 h-9 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500/40 transition-all"
           />
         </div>
 
         <select
           value={ordering}
           onChange={(e) => setOrdering(e.target.value)}
-          className="px-3 py-2.5 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-sm text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/40 transition-all"
+          className="h-9 px-3 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500/40 transition-all"
         >
-          <option value="last_name">Sort: Name</option>
-          <option value="-latest_mindset_score">Sort: Score ↓</option>
-          <option value="latest_mindset_score">Sort: Score ↑</option>
-          <option value="-last_assessed">Sort: Recent</option>
+          <option value="last_name">Name A→Z</option>
+          <option value="-latest_mindset_score">Score ↓</option>
+          <option value="latest_mindset_score">Score ↑</option>
+          <option value="-last_assessed">Recent first</option>
         </select>
 
-        <div className="flex rounded-xl border border-[var(--border)] overflow-hidden">
+        <div className="flex rounded-lg border border-zinc-800 overflow-hidden">
           <button
             onClick={() => setView('card')}
             className={cn(
-              'px-3 py-2.5 transition-all',
-              view === 'card'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-2)]'
+              'w-9 h-9 flex items-center justify-center transition-all',
+              view === 'card' ? 'bg-zinc-700 text-zinc-50' : 'bg-zinc-900 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300'
             )}
             title="Card view"
           >
@@ -356,10 +357,8 @@ export default function StudentsPage() {
           <button
             onClick={() => setView('table')}
             className={cn(
-              'px-3 py-2.5 border-l border-[var(--border)] transition-all',
-              view === 'table'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-2)]'
+              'w-9 h-9 flex items-center justify-center border-l border-zinc-800 transition-all',
+              view === 'table' ? 'bg-zinc-700 text-zinc-50' : 'bg-zinc-900 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300'
             )}
             title="Table view"
           >
@@ -369,135 +368,129 @@ export default function StudentsPage() {
       </div>
 
       {/* Filter tabs */}
-      <div className="flex flex-wrap gap-2">
-        {FILTER_TABS.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setFilter(tab.key)}
-            className={cn(
-              'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-              filter === tab.key
-                ? tab.activeClass
-                : 'bg-transparent text-[var(--text-muted)] border-[var(--border)] hover:bg-[var(--surface-2)] hover:text-[var(--text-secondary)]'
-            )}
-          >
-            {tab.label}
-            <span
+      <div className="flex flex-wrap gap-1.5">
+        {FILTER_TABS.map((tab) => {
+          const active = filter === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setFilter(tab.key)}
               className={cn(
-                'inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-bold',
-                filter === tab.key ? 'bg-white/15' : 'bg-[var(--surface-2)]'
+                'inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-medium border transition-all',
+                active
+                  ? 'bg-zinc-800 text-zinc-100 border-zinc-600'
+                  : 'bg-transparent text-zinc-500 border-zinc-800 hover:bg-zinc-800/50 hover:text-zinc-300'
               )}
             >
-              {filterCounts[tab.key]}
-            </span>
-          </button>
-        ))}
+              {tab.dot && (
+                <span className={cn('w-1.5 h-1.5 rounded-full', tab.dot)} />
+              )}
+              {tab.label}
+              <span className={cn(
+                'inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[10px] font-bold px-1',
+                active ? 'bg-zinc-700 text-zinc-200' : 'bg-zinc-800/80 text-zinc-500'
+              )}>
+                {filterCounts[tab.key]}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Hint when no selection yet */}
+      {/* Multi-select hint */}
       {!isLoading && shown.length > 1 && selectedIds.size === 0 && (
-        <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-indigo-500/8 border border-indigo-500/15 text-xs text-indigo-300">
-          <CheckSquare size={13} className="shrink-0" />
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-cyan-500/5 border border-cyan-500/15 text-xs text-cyan-400"
+        >
+          <SlidersHorizontal size={12} className="shrink-0" />
           Tip: check the boxes next to students to create a personalised multi-student study plan.
-        </div>
+        </motion.div>
       )}
 
       {/* Content */}
       {isError ? (
-        <Card>
-          <div className="text-center py-10 text-red-400 text-sm">
-            Failed to load students. Please refresh the page.
-          </div>
-        </Card>
+        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-8 text-center">
+          <p className="text-rose-400 text-sm">Failed to load students. Please refresh the page.</p>
+        </div>
       ) : isLoading ? (
         view === 'card' ? (
-          <div className="space-y-2.5">
-            {[1, 2, 3, 4].map((i) => (
-              <SkeletonStudentRow key={i} />
-            ))}
+          <div className="space-y-2">
+            {[1, 2, 3, 4].map((i) => <SkeletonStudentRow key={i} />)}
           </div>
         ) : (
           <SkeletonTable rows={5} />
         )
       ) : shown.length === 0 ? (
-        <Card>
-          <div className="text-center py-14">
-            <div className="w-12 h-12 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center mx-auto mb-3">
-              <Search size={20} className="text-[var(--text-muted)]" />
-            </div>
-            <p className="text-[var(--text-secondary)] text-sm mb-1">
-              {search
-                ? 'No students match your search.'
-                : filter !== 'all'
-                ? `No ${filter} mindset students.`
-                : 'No students yet.'}
-            </p>
-            {!search && filter === 'all' && (
-              <Link href="/dashboard/students/new">
-                <Button variant="secondary" className="mt-3" size="sm">
-                  Add your first student
-                </Button>
-              </Link>
-            )}
+        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-12 text-center">
+          <div className="w-12 h-12 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center mx-auto mb-4">
+            <Users size={20} className="text-zinc-600" />
           </div>
-        </Card>
+          <p className="text-zinc-300 text-sm font-medium mb-1">
+            {search ? 'No students match your search.' : filter !== 'all' ? `No ${filter} mindset students.` : 'No students yet.'}
+          </p>
+          <p className="text-zinc-600 text-xs mb-4">
+            {!search && filter === 'all' ? 'Get started by adding your first student.' : ''}
+          </p>
+          {!search && filter === 'all' && (
+            <Link href="/dashboard/students/new">
+              <Button variant="primary" size="sm">
+                <Plus size={13} />Add your first student
+              </Button>
+            </Link>
+          )}
+        </div>
       ) : view === 'card' ? (
-        <div className="space-y-2.5">
-          {shown.map((student) => {
+        <motion.div
+          variants={listVariants}
+          initial="hidden"
+          animate="show"
+          className="space-y-2"
+        >
+          {shown.map((student, idx) => {
             const isSelected = selectedIds.has(student.id);
             return (
-              <div
+              <motion.div
                 key={student.id}
+                variants={rowVariants}
                 className={cn(
-                  'group flex items-center justify-between bg-[var(--surface)] rounded-xl border transition-all',
+                  'group flex items-center bg-zinc-900 rounded-xl border transition-all duration-150',
                   isSelected
-                    ? 'border-indigo-500/40 bg-indigo-500/5 shadow-[0_0_0_1px_rgba(99,102,241,0.15)]'
-                    : 'border-[var(--border)] hover:border-indigo-500/30 hover:bg-[var(--surface-2)]'
+                    ? 'border-cyan-500/30 bg-cyan-500/5 shadow-[0_0_0_1px_rgba(6,182,212,0.1)]'
+                    : 'border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/50'
                 )}
               >
                 {/* Checkbox */}
                 <button
                   onClick={(e) => toggleSelect(student.id, e)}
                   className={cn(
-                    'flex-shrink-0 w-10 h-full flex items-center justify-center rounded-l-xl transition-all',
-                    isSelected
-                      ? 'text-indigo-400'
-                      : 'text-[var(--text-muted)] opacity-0 group-hover:opacity-100'
+                    'flex-shrink-0 w-10 h-full flex items-center justify-center transition-all',
+                    isSelected ? 'text-cyan-400' : 'text-zinc-600 opacity-0 group-hover:opacity-100'
                   )}
-                  title={isSelected ? 'Deselect student' : 'Select student'}
                   aria-label={isSelected ? `Deselect ${student.full_name}` : `Select ${student.full_name}`}
                 >
-                  <div
-                    className={cn(
-                      'w-4 h-4 rounded border-2 flex items-center justify-center transition-all',
-                      isSelected
-                        ? 'bg-indigo-600 border-indigo-600'
-                        : 'border-[var(--border)] bg-transparent'
-                    )}
-                  >
+                  <div className={cn(
+                    'w-4 h-4 rounded border-2 flex items-center justify-center transition-all',
+                    isSelected ? 'bg-cyan-500 border-cyan-500' : 'border-zinc-700'
+                  )}>
                     {isSelected && (
                       <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
-                        <path d="M1 3L3 5L7 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M1 3L3 5L7 1" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     )}
                   </div>
                 </button>
 
-                {/* Content — navigates to student detail */}
                 <Link
                   href={`/dashboard/students/${student.id}`}
-                  className="flex flex-1 items-center justify-between p-4 pl-2 min-w-0"
+                  className="flex flex-1 items-center justify-between p-3.5 pl-2 min-w-0"
                 >
-                  <div className="flex items-center gap-4 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center font-semibold text-indigo-300 text-sm shrink-0">
-                      {student.first_name?.[0]}
-                      {student.last_name?.[0]}
-                    </div>
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <StudentAvatar student={student} index={idx} size={10} />
                     <div className="min-w-0">
-                      <p className="font-semibold text-sm text-[var(--text-primary)] truncate">
-                        {student.full_name}
-                      </p>
-                      <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                      <p className="font-semibold text-sm text-zinc-100 truncate">{student.full_name}</p>
+                      <p className="text-xs text-zinc-500 mt-0.5">
                         {student.grade_level ? `Grade ${student.grade_level}` : 'Grade not set'}
                         {student.age ? ` · Age ${student.age}` : ''}
                       </p>
@@ -505,73 +498,49 @@ export default function StudentsPage() {
                   </div>
                   <div className="flex items-center gap-4 shrink-0 ml-4">
                     <div className="text-right hidden sm:block">
-                      <p className="text-xs text-[var(--text-muted)]">
-                        {student.last_assessed
-                          ? `Assessed ${formatRelativeDate(student.last_assessed)}`
-                          : 'Not yet assessed'}
+                      <p className="text-xs text-zinc-500">
+                        {student.last_assessed ? `Assessed ${formatRelativeDate(student.last_assessed)}` : 'Not yet assessed'}
                       </p>
-                      <p className="text-xs text-[var(--text-muted)]/60 mt-0.5">
-                        {student.survey_count ?? 0} survey
-                        {(student.survey_count ?? 0) !== 1 ? 's' : ''}
+                      <p className="text-[11px] text-zinc-600 mt-0.5">
+                        {student.survey_count ?? 0} survey{(student.survey_count ?? 0) !== 1 ? 's' : ''}
                       </p>
                     </div>
                     <MindsetBadge
                       classification={student.latest_classification}
-                      score={
-                        student.latest_mindset_score !== null
-                          ? Number(student.latest_mindset_score)
-                          : null
-                      }
+                      score={student.latest_mindset_score !== null ? Number(student.latest_mindset_score) : null}
                     />
-                    <ChevronRight
-                      size={14}
-                      className="text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors"
-                    />
+                    <ChevronRight size={14} className="text-zinc-600 group-hover:text-zinc-400 transition-colors" />
                   </div>
                 </Link>
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       ) : (
         /* Table view */
-        <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] overflow-hidden">
+        <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[var(--border)]">
+              <tr className="border-b border-zinc-800">
                 <th className="w-10 px-4 py-3" />
-                <th className="px-5 py-3 text-left text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">
-                  Student
-                </th>
-                <th className="px-5 py-3 text-left text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">
-                  Grade
-                </th>
-                <th className="px-5 py-3 text-left text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider hidden md:table-cell">
-                  Score
-                </th>
-                <th className="px-5 py-3 text-left text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider hidden lg:table-cell">
-                  Last Assessed
-                </th>
-                <th className="px-5 py-3 text-left text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">
-                  Mindset
-                </th>
+                <th className="px-5 py-3 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-wider">Student</th>
+                <th className="px-5 py-3 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-wider">Grade</th>
+                <th className="px-5 py-3 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-wider hidden md:table-cell">Score</th>
+                <th className="px-5 py-3 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-wider hidden lg:table-cell">Last Assessed</th>
+                <th className="px-5 py-3 text-left text-[10px] font-semibold text-zinc-600 uppercase tracking-wider">Mindset</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--border-subtle)]">
-              {shown.map((student) => {
+            <tbody className="divide-y divide-zinc-800/60">
+              {shown.map((student, idx) => {
                 const isSelected = selectedIds.has(student.id);
                 return (
                   <tr
                     key={student.id}
                     className={cn(
-                      'transition-colors group',
-                      isSelected
-                        ? 'bg-indigo-500/8'
-                        : 'hover:bg-[var(--surface-2)] cursor-pointer'
+                      'transition-colors group cursor-pointer',
+                      isSelected ? 'bg-cyan-500/5' : 'hover:bg-zinc-800/50'
                     )}
-                    onClick={() =>
-                      !isSelected && (window.location.href = `/dashboard/students/${student.id}`)
-                    }
+                    onClick={() => !isSelected && (window.location.href = `/dashboard/students/${student.id}`)}
                   >
                     <td className="px-4 py-3.5">
                       <button
@@ -579,17 +548,13 @@ export default function StudentsPage() {
                         className="flex items-center justify-center"
                         aria-label={isSelected ? `Deselect ${student.full_name}` : `Select ${student.full_name}`}
                       >
-                        <div
-                          className={cn(
-                            'w-4 h-4 rounded border-2 flex items-center justify-center transition-all',
-                            isSelected
-                              ? 'bg-indigo-600 border-indigo-600'
-                              : 'border-[var(--border)] bg-transparent opacity-0 group-hover:opacity-100'
-                          )}
-                        >
+                        <div className={cn(
+                          'w-4 h-4 rounded border-2 flex items-center justify-center transition-all',
+                          isSelected ? 'bg-cyan-500 border-cyan-500' : 'border-zinc-700 opacity-0 group-hover:opacity-100'
+                        )}>
                           {isSelected && (
                             <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
-                              <path d="M1 3L3 5L7 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M1 3L3 5L7 1" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                           )}
                         </div>
@@ -597,36 +562,21 @@ export default function StudentsPage() {
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500/15 to-violet-500/15 border border-indigo-500/15 flex items-center justify-center text-xs font-semibold text-indigo-300">
-                          {student.first_name?.[0]}
-                          {student.last_name?.[0]}
-                        </div>
-                        <span className="font-medium text-[var(--text-primary)]">
-                          {student.full_name}
-                        </span>
+                        <StudentAvatar student={student} index={idx} size={8} />
+                        <span className="font-medium text-zinc-200">{student.full_name}</span>
                       </div>
                     </td>
-                    <td className="px-5 py-3.5 text-[var(--text-muted)] text-xs">
-                      {student.grade_level ? `Grade ${student.grade_level}` : '—'}
+                    <td className="px-5 py-3.5 text-zinc-500 text-xs">{student.grade_level ? `Grade ${student.grade_level}` : '—'}</td>
+                    <td className="px-5 py-3.5 text-zinc-300 hidden md:table-cell font-semibold tabular-nums">
+                      {student.latest_mindset_score !== null ? Number(student.latest_mindset_score).toFixed(1) : '—'}
                     </td>
-                    <td className="px-5 py-3.5 text-[var(--text-secondary)] hidden md:table-cell font-semibold tabular-nums">
-                      {student.latest_mindset_score !== null
-                        ? Number(student.latest_mindset_score).toFixed(1)
-                        : '—'}
-                    </td>
-                    <td className="px-5 py-3.5 text-[var(--text-muted)] text-xs hidden lg:table-cell">
-                      {student.last_assessed
-                        ? formatRelativeDate(student.last_assessed)
-                        : 'Not assessed'}
+                    <td className="px-5 py-3.5 text-zinc-500 text-xs hidden lg:table-cell">
+                      {student.last_assessed ? formatRelativeDate(student.last_assessed) : 'Not assessed'}
                     </td>
                     <td className="px-5 py-3.5">
                       <MindsetBadge
                         classification={student.latest_classification}
-                        score={
-                          student.latest_mindset_score !== null
-                            ? Number(student.latest_mindset_score)
-                            : null
-                        }
+                        score={student.latest_mindset_score !== null ? Number(student.latest_mindset_score) : null}
                       />
                     </td>
                   </tr>
@@ -637,30 +587,40 @@ export default function StudentsPage() {
         </div>
       )}
 
-      {/* Floating Action Button — appears when 2+ selected */}
-      {selectedIds.size >= 2 && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 animate-fade-in">
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2.5 px-5 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold shadow-[0_8px_30px_rgba(99,102,241,0.5)] hover:shadow-[0_8px_35px_rgba(99,102,241,0.65)] transition-all border border-indigo-400/30 backdrop-blur-sm"
+      {/* Floating Action Bar */}
+      <AnimatePresence>
+        {selectedIds.size >= 2 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40"
           >
-            <BookOpen size={16} />
-            Create Study Plan
-            <span className="ml-1 w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold">
-              {selectedIds.size}
-            </span>
-          </button>
-        </div>
-      )}
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2.5 px-5 py-3.5 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 text-sm font-semibold shadow-[0_8px_30px_rgba(6,182,212,0.4)] hover:shadow-[0_8px_40px_rgba(6,182,212,0.55)] transition-all border border-cyan-400/30 active:scale-[0.98]"
+            >
+              <BookOpen size={16} />
+              Create Study Plan
+              <span className="ml-1 w-5 h-5 rounded-full bg-zinc-950/20 flex items-center justify-center text-xs font-bold">
+                {selectedIds.size}
+              </span>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Modal */}
-      {showModal && (
-        <StudyPlanModal
-          selectedStudents={selectedStudents}
-          onClose={() => setShowModal(false)}
-          onSuccess={handlePlanSuccess}
-        />
-      )}
-    </div>
+      <AnimatePresence>
+        {showModal && (
+          <StudyPlanModal
+            selectedStudents={selectedStudents}
+            onClose={() => setShowModal(false)}
+            onSuccess={handlePlanSuccess}
+          />
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

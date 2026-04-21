@@ -2,49 +2,101 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* ----- Background layers ----- */
-  --bg:        #0d1117;   /* page background */
-  --surface:   #161b22;   /* card / panel */
-  --surface-2: #21262d;   /* elevated / input bg */
-  --surface-3: #30363d;   /* most elevated, hover targets */
-
-  /* ----- Borders ----- */
-  --border:        #30363d;   /* clearly visible */
-  --border-subtle: #21262d;   /* within-card dividers */
-
-  /* ----- Text ----- */
-  --text-primary:   #e6edf3;  /* headings & body copy */
-  --text-secondary: #8b949e;  /* supporting text, clearly readable */
-  --text-muted:     #6e7681;  /* labels, captions — still readable */
-
-  /* ----- Accent ----- */
-  --accent:      #6366f1;
-  --accent-2:    #8b5cf6;
-  --accent-glow: rgba(99, 102, 241, 0.2);
-
-  /* ----- Status colours ----- */
-  --growth:       #10b981;
-  --growth-muted: rgba(16, 185, 129, 0.15);
-  --mixed:        #f59e0b;
-  --mixed-muted:  rgba(245, 158, 11, 0.15);
-  --fixed:        #ef4444;
-  --fixed-muted:  rgba(239, 68, 68, 0.15);
-
-  /* ----- Legacy compat (used by login-form-visual & login page) ----- */
-  --color-bg:             #0d1117;
-  --color-surface:        #161b22;
-  --color-muted-surface:  #21262d;
-  --color-border:         #30363d;
-  --color-text-secondary: #8b949e;
-  --color-text-primary:   #e6edf3;
-  --color-heading:        #f0f6fc;
-  --color-bg-2:           #e6edf3;
-}
-
 @layer base {
+  :root {
+    /* shadcn/ui CSS variables — DARK by default (zinc-950 theme) */
+    --background: 240 10% 3.9%;       /* zinc-950 #09090b */
+    --foreground: 0 0% 98%;           /* zinc-50 */
+    --card: 240 10% 5.5%;             /* zinc-900 */
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 5.5%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Cyan-500 as primary */
+    --primary: 189 94% 43%;           /* cyan-500 #06b6d4 */
+    --primary-foreground: 0 0% 2%;
+
+    --secondary: 240 4% 16%;          /* zinc-800 */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 64.9%; /* zinc-400 */
+    --accent: 240 4% 16%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84.2% 60.2%;     /* rose-500 */
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 4% 16%;             /* zinc-800 */
+    --input: 240 4% 16%;
+    --ring: 189 94% 43%;              /* cyan-500 */
+    --radius: 0.625rem;
+
+    /* ── Custom design tokens ─────────────────────────────── */
+    --bg:              #09090b;   /* zinc-950 */
+    --surface:         #18181b;   /* zinc-900 */
+    --surface-2:       #27272a;   /* zinc-800 */
+    --surface-3:       #3f3f46;   /* zinc-700 */
+    --border-color:    #27272a;   /* zinc-800 */
+    --border-subtle:   #18181b;   /* zinc-900 */
+
+    /* Text */
+    --text-primary:    #fafafa;   /* zinc-50 */
+    --text-secondary:  #a1a1aa;   /* zinc-400 */
+    --text-muted:      #71717a;   /* zinc-500 */
+
+    /* Accent: cyan */
+    --cyan:            #06b6d4;
+    --cyan-muted:      rgba(6, 182, 212, 0.12);
+    --cyan-glow:       rgba(6, 182, 212, 0.25);
+
+    /* Status */
+    --growth:          #10b981;  /* emerald-500 */
+    --growth-muted:    rgba(16, 185, 129, 0.12);
+    --mixed:           #f59e0b;  /* amber-500 */
+    --mixed-muted:     rgba(245, 158, 11, 0.12);
+    --fixed:           #f43f5e;  /* rose-500 */
+    --fixed-muted:     rgba(244, 63, 94, 0.12);
+
+    /* Legacy compat */
+    --accent-var:         #06b6d4;
+    --accent-glow:        rgba(6, 182, 212, 0.2);
+    --color-bg:           #09090b;
+    --color-surface:      #18181b;
+    --color-muted-surface:#27272a;
+    --color-border:       #27272a;
+    --color-text-secondary:#a1a1aa;
+    --color-text-primary: #fafafa;
+    --color-heading:      #fafafa;
+    --color-bg-2:         #fafafa;
+  }
+
+  /* Light mode overrides (optional toggle) */
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 189 94% 43%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 189 94% 43%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
   html {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -55,12 +107,20 @@
   }
 }
 
-.auth-page {
-  background-color: var(--bg);
-  color: var(--text-primary);
+/* Noise/grain texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.02;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
 }
 
 @layer components {
+  /* Mindset badges */
   .mindset-growth {
     @apply bg-emerald-500/10 text-emerald-400 border border-emerald-500/25;
   }
@@ -68,36 +128,53 @@
     @apply bg-amber-500/10 text-amber-400 border border-amber-500/25;
   }
   .mindset-fixed {
-    @apply bg-red-500/10 text-red-400 border border-red-500/25;
+    @apply bg-rose-500/10 text-rose-400 border border-rose-500/25;
   }
 
-  .glow-indigo { box-shadow: 0 0 30px rgba(99, 102, 241, 0.12); }
-  .glow-green  { box-shadow: 0 0 30px rgba(16, 185, 129, 0.12); }
-  .glow-amber  { box-shadow: 0 0 30px rgba(245, 158, 11, 0.12); }
+  /* Glow effects */
+  .glow-cyan   { box-shadow: 0 0 24px rgba(6, 182, 212, 0.15); }
+  .glow-green  { box-shadow: 0 0 24px rgba(16, 185, 129, 0.12); }
+  .glow-amber  { box-shadow: 0 0 24px rgba(245, 158, 11, 0.12); }
+  .glow-rose   { box-shadow: 0 0 24px rgba(244, 63, 94, 0.12); }
+
+  /* Legacy */
+  .glow-indigo { box-shadow: 0 0 24px rgba(99, 102, 241, 0.12); }
 
   .gradient-text {
-    @apply bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-cyan-400 to-sky-400 bg-clip-text text-transparent;
   }
 
   .glass {
-    background: rgba(22, 27, 34, 0.88);
+    background: rgba(24, 24, 27, 0.88);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
   }
 
-  /* Section label — now uses --text-secondary so it's actually readable */
   .section-label {
-    @apply text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)];
+    @apply text-xs font-semibold uppercase tracking-widest text-zinc-500;
+  }
+
+  /* Shimmer skeleton */
+  .shimmer {
+    background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+  }
+
+  /* Auth page */
+  .auth-page {
+    background-color: var(--bg);
+    color: var(--text-primary);
   }
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track  { background: var(--bg); }
-::-webkit-scrollbar-thumb  { background: var(--surface-3); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #484f58; }
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #52525b; }
 
 ::selection {
-  background: rgba(99, 102, 241, 0.35);
-  color: #e6edf3;
+  background: rgba(6, 182, 212, 0.3);
+  color: #fafafa;
 }
