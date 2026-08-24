@@ -17,11 +17,11 @@ import { motion } from 'framer-motion';
 // ── Student colour palette ────────────────────────────────────────────────────
 
 const STUDENT_COLORS = [
-  { bg: 'bg-cyan-500/15',    text: 'text-cyan-300',    border: 'border-cyan-500/25',    dot: 'bg-cyan-400'    },
   { bg: 'bg-emerald-500/15', text: 'text-emerald-300', border: 'border-emerald-500/25', dot: 'bg-emerald-400' },
   { bg: 'bg-amber-500/15',   text: 'text-amber-300',   border: 'border-amber-500/25',   dot: 'bg-amber-400'   },
-  { bg: 'bg-violet-500/15',  text: 'text-violet-300',  border: 'border-violet-500/25',  dot: 'bg-violet-400'  },
   { bg: 'bg-rose-500/15',    text: 'text-rose-300',    border: 'border-rose-500/25',    dot: 'bg-rose-400'    },
+  { bg: 'bg-sky-500/15',     text: 'text-sky-300',     border: 'border-sky-500/25',     dot: 'bg-sky-400'     },
+  { bg: 'bg-teal-500/15',    text: 'text-teal-300',    border: 'border-teal-500/25',    dot: 'bg-teal-400'    },
 ];
 
 function useStudentColors(names: string[]) {
@@ -36,10 +36,10 @@ function useStudentColors(names: string[]) {
 
 const SECTION_META: Record<string, { emoji: string; accent: string }> = {
   opening:         { emoji: '🌟', accent: 'from-amber-500/20 to-orange-500/20 border-amber-500/20' },
-  mindset_checkin: { emoji: '🧠', accent: 'from-violet-500/20 to-purple-500/20 border-violet-500/20' },
-  main_content:    { emoji: '📚', accent: 'from-sky-500/20 to-cyan-500/20 border-sky-500/20' },
-  practice:        { emoji: '✏️', accent: 'from-emerald-500/20 to-teal-500/20 border-emerald-500/20' },
-  closing:         { emoji: '🎯', accent: 'from-cyan-500/20 to-sky-500/20 border-cyan-500/20' },
+  mindset_checkin: { emoji: '🧠', accent: 'from-amber-500/20 to-yellow-500/20 border-amber-500/20' },
+  main_content:    { emoji: '📚', accent: 'from-emerald-500/20 to-teal-500/20 border-emerald-500/20' },
+  practice:        { emoji: '✏️', accent: 'from-teal-500/20 to-emerald-500/20 border-teal-500/20' },
+  closing:         { emoji: '🎯', accent: 'from-zinc-500/20 to-zinc-600/20 border-zinc-500/20' },
   teacher_notes:   { emoji: '📝', accent: 'from-zinc-700/40 to-zinc-700/20 border-zinc-700/40' },
 };
 
@@ -65,6 +65,30 @@ function StudentBadge({ name, colorMap }: { name: string; colorMap: Record<strin
   );
 }
 
+// ── Highlighted Content (inline student name badges) ─────────────────────────
+
+function HighlightedContent({ text, colorMap }: { text: string; colorMap: Record<string, typeof STUDENT_COLORS[0]> }) {
+  const names = Object.keys(colorMap);
+  if (names.length === 0) return <>{text}</>;
+
+  // Build a regex that matches any student name (longest first to avoid partial matches)
+  const sorted = [...names].sort((a, b) => b.length - a.length);
+  const pattern = new RegExp(`(${sorted.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g');
+
+  const parts = text.split(pattern);
+  return (
+    <>
+      {parts.map((part, i) =>
+        colorMap[part] ? (
+          <StudentBadge key={i} name={part} colorMap={colorMap} />
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
 // ── Callout Card ──────────────────────────────────────────────────────────────
 
 function CalloutCard({ callout, colorMap }: { callout: StudentCallout; colorMap: Record<string, typeof STUDENT_COLORS[0]> }) {
@@ -78,7 +102,7 @@ function CalloutCard({ callout, colorMap }: { callout: StudentCallout; colorMap:
           {label}
         </span>
       </div>
-      <p className="text-xs text-zinc-300 leading-relaxed">{callout.content}</p>
+      <p className="text-xs text-zinc-300 leading-relaxed"><HighlightedContent text={callout.content} colorMap={colorMap} /></p>
     </div>
   );
 }
@@ -115,14 +139,14 @@ function SectionBlock({ section, colorMap, defaultOpen = true }: { section: Plan
       {open && (
         <div className="px-5 pb-5 space-y-4 border-t border-zinc-800">
           {section.content && (
-            <p className="pt-4 text-sm text-zinc-300 leading-relaxed">{section.content}</p>
+            <p className="pt-4 text-sm text-zinc-300 leading-relaxed"><HighlightedContent text={section.content} colorMap={colorMap} /></p>
           )}
           {section.chunks && section.chunks.length > 0 && (
             <div className="space-y-4">
               {section.chunks.map((chunk, ci) => (
                 <div key={ci} className="rounded-xl bg-zinc-800/60 border border-zinc-700/50 p-4 space-y-3">
                   <p className="text-xs font-bold text-zinc-300 uppercase tracking-wider">{chunk.title}</p>
-                  <p className="text-sm text-zinc-400 leading-relaxed">{chunk.explanation}</p>
+                  <p className="text-sm text-zinc-400 leading-relaxed"><HighlightedContent text={chunk.explanation} colorMap={colorMap} /></p>
                   {chunk.student_callouts && chunk.student_callouts.length > 0 && (
                     <div className="grid gap-2 sm:grid-cols-2">
                       {chunk.student_callouts.map((c, ci2) => (
@@ -190,8 +214,8 @@ function StudyPlanChat({ planId }: { planId: string }) {
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
-            <Sparkles size={11} className="text-violet-400" />
+          <div className="w-6 h-6 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+            <Sparkles size={11} className="text-emerald-400" />
           </div>
           <span className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
             Session Assistant
@@ -215,7 +239,7 @@ function StudyPlanChat({ planId }: { planId: string }) {
               key={p.label}
               onClick={() => send(p.message)}
               disabled={mutation.isPending}
-              className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-violet-500/10 text-violet-300 border border-violet-500/20 hover:bg-violet-500/20 transition-all disabled:opacity-50"
+              className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-zinc-700 transition-all disabled:opacity-50"
             >
               {p.label}
             </button>
@@ -230,7 +254,7 @@ function StudyPlanChat({ planId }: { planId: string }) {
               <div className={cn(
                 'max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed whitespace-pre-wrap',
                 m.role === 'user'
-                  ? 'bg-cyan-600 text-white rounded-br-sm shadow-[0_4px_12px_rgba(6,182,212,0.25)]'
+                  ? 'bg-emerald-600 text-white rounded-br-sm shadow-[0_4px_12px_rgba(16,185,129,0.2)]'
                   : 'bg-zinc-800 text-zinc-200 border border-zinc-700 rounded-bl-sm',
               )}>
                 {m.content}
@@ -241,9 +265,9 @@ function StudyPlanChat({ planId }: { planId: string }) {
             <div className="flex justify-start">
               <div className="bg-zinc-800 border border-zinc-700 rounded-2xl rounded-bl-sm px-4 py-3">
                 <span className="flex gap-1.5">
-                  <span className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                  <span className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                  <span className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                  <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-[pulse-dot_1.2s_cubic-bezier(0.25,1,0.5,1)_infinite_0ms]" />
+                  <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-[pulse-dot_1.2s_cubic-bezier(0.25,1,0.5,1)_infinite_200ms]" />
+                  <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-[pulse-dot_1.2s_cubic-bezier(0.25,1,0.5,1)_infinite_400ms]" />
                 </span>
               </div>
             </div>
@@ -260,12 +284,12 @@ function StudyPlanChat({ planId }: { planId: string }) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && send()}
           disabled={mutation.isPending}
-          className="flex-1 rounded-lg bg-zinc-800/80 border border-zinc-700 px-3 py-2.5 text-xs text-zinc-100 placeholder:text-zinc-600 focus:border-cyan-500/40 focus:ring-2 focus:ring-cyan-500/15 outline-none transition-all disabled:opacity-50"
+          className="flex-1 rounded-lg bg-zinc-800/80 border border-zinc-700 px-3 py-2.5 text-xs text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500/40 focus:ring-2 focus:ring-emerald-500/15 outline-none transition-all disabled:opacity-50"
         />
         <button
           onClick={() => send()}
           disabled={!input.trim() || mutation.isPending}
-          className="shrink-0 p-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_2px_8px_rgba(6,182,212,0.3)]"
+          className="shrink-0 p-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_2px_8px_rgba(16,185,129,0.2)]"
         >
           <SendHorizonal size={14} />
         </button>
@@ -320,7 +344,7 @@ export default function StudyPlanDetailPage() {
         <p className="text-rose-400 text-sm mb-4">Study plan not found or failed to load.</p>
         <button
           onClick={() => router.push('/dashboard/study-plans')}
-          className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
+          className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
         >
           ← Back to Study Plans
         </button>

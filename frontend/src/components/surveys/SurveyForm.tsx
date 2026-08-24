@@ -147,7 +147,7 @@ export default function SurveyForm({ studentId, studentName, onComplete }: Surve
                 'inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full border',
                 currentQuestion.type === 'likert'
                   ? 'bg-cyan-500/8 text-cyan-400 border-cyan-500/20'
-                  : 'bg-violet-500/8 text-violet-400 border-violet-500/20'
+                  : 'bg-amber-500/8 text-amber-400 border-amber-500/20'
               )}>
                 {currentQuestion.type === 'likert' ? (
                   <><ListChecks size={10} />Multiple Choice</>

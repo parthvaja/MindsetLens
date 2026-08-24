@@ -181,9 +181,19 @@ PERSONALISATION RULES — you MUST follow all of these:
      "strong reader").
    • Their known weaknesses or anxieties to work around.
    • Any personal details that make a real-world context resonate for them.
-   If a student has no observations, use their mindset classification to guide tone.
+   If a student has no observations, use their mindset classification and
+   grade/age to guide tone.
 
-2. EVERY EXAMPLE MUST BE STUDENT-SPECIFIC.
+   USE GRADE/AGE to calibrate vocabulary, humour, and references.
+   A 7-year-old and a 15-year-old need very different language.
+
+2. BRIDGE FROM DOCUMENTED STRENGTHS.
+   If observations say "good at multiplication", start the new topic by
+   connecting it to multiplication (e.g. "fractions are just a different way
+   of writing division, and you already know 3×4=12 so…"). Each student's
+   entry into the topic should begin from something they already know.
+
+3. EVERY EXAMPLE MUST BE STUDENT-SPECIFIC.
    For each concept chunk in Main Content, write a separate, named example
    for EACH student that uses their actual interests. Do NOT write generic
    examples and then add "adjust for student X". The example text itself must
@@ -192,15 +202,15 @@ PERSONALISATION RULES — you MUST follow all of these:
    Example of what GOOD looks like (for topic "Fractions"):
 {example_block}
 
-3. PRACTICE PROBLEMS reference each student's interests.
+4. PRACTICE PROBLEMS reference each student's interests.
    E.g. if a student likes gaming: "Your character has 3/4 health remaining..."
    if a student likes baking: "A recipe needs 2/3 cup of flour..."
 
-4. CLOSING TAKEAWAY is personalised.
+5. CLOSING TAKEAWAY is personalised.
    The homework or reflection task for each student should connect to something
    they care about — not a generic "do 5 problems".
 
-5. TEACHER NOTES = intelligence brief.
+6. TEACHER NOTES = intelligence brief.
    For each student, flag:
    • The specific sensitivities or triggers visible in the observations.
    • The strengths the teacher can lean on.
@@ -364,11 +374,7 @@ Additional rules:
     def _format_student_profile(self, student: Dict) -> str:
         """
         Render a student profile block for the prompt.
-        Format:
-            Student: [Name]
-            Mindset Score: [score]/100 ([classification])
-            Observations:
-            - [date]: [text]
+        Includes grade, age, mindset data, and full observation history.
         """
         observations = student.get('observations', [])
         if observations:
@@ -379,8 +385,17 @@ Additional rules:
         else:
             obs_lines = '  (no observations recorded yet)'
 
+        # Build demographics line
+        demo_parts = []
+        if student.get('grade_level'):
+            demo_parts.append(student['grade_level'])
+        if student.get('age'):
+            demo_parts.append(f"age {student['age']}")
+        demo_line = f"Grade/Age: {', '.join(demo_parts)}\n" if demo_parts else ''
+
         return (
             f"Student: {student['name']}\n"
+            f"{demo_line}"
             f"Mindset Score: {student['mindset_score']}/100 "
             f"({student['classification']})\n"
             f"Observations:\n{obs_lines}"
@@ -404,7 +419,12 @@ Additional rules:
 
         return f"""You are a practical, encouraging teaching assistant helping a classroom teacher during or after a study session.
 
-You have complete knowledge of the students' interests, strengths, and past observations. When the teacher asks for an alternative example, ALWAYS draw on a student's documented interests (e.g. if the notes say "likes Marvel", suggest a Marvel-themed problem). When asked about a student's likely reaction, reference specific observations.
+You have complete knowledge of each student's grade, age, interests, strengths, weaknesses, and full observation history. Use this knowledge proactively:
+
+- When the teacher asks for an alternative example for a student, ALWAYS draw on that student's documented interests (e.g. if the notes say "likes Marvel", suggest a Marvel-themed problem; if "enjoys baking", frame it as a recipe scenario).
+- When asked how a student might react, cite specific observations by date.
+- When suggesting how to bridge to a new concept, reference the student's documented strengths (e.g. "Since Alice is strong at multiplication per your 2026-08-15 note, you could frame fractions as…").
+- When the teacher asks about sensitivities or triggers, surface relevant observations.
 
 ═══════════════════════════════
 FULL STUDENT PROFILES & OBSERVATIONS
@@ -416,7 +436,7 @@ FULL STUDY PLAN
 ═══════════════════════════════
 {plan_json}
 
-Respond in 3-8 sentences or a short bullet list. Be specific and actionable. Address students by name. Reference their documented interests when suggesting alternatives. Keep responses concise — the teacher may be mid-lesson."""
+Respond in 3-8 sentences or a short bullet list. Be specific and actionable. Address students by name. Reference their documented interests and observations when suggesting alternatives. Keep responses concise — the teacher may be mid-lesson."""
 
     # ── internal helpers ──────────────────────────────────────────────────────
 

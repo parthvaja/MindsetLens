@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -230,9 +230,19 @@ const rowVariants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.25 } },
 };
 
+function useDebouncedValue(value: string, delay = 300) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(id);
+  }, [value, delay]);
+  return debounced;
+}
+
 export default function StudentsPage() {
   const router = useRouter();
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [filter, setFilter] = useState<FilterType>('all');
   const [view, setView] = useState<ViewMode>('card');
   const [ordering, setOrdering] = useState('last_name');
@@ -240,8 +250,8 @@ export default function StudentsPage() {
   const [showModal, setShowModal] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['students', search, ordering],
-    queryFn: () => getStudents({ search, ordering }),
+    queryKey: ['students', debouncedSearch, ordering],
+    queryFn: () => getStudents({ search: debouncedSearch, ordering }),
   });
 
   const allStudents = data?.results ?? [];

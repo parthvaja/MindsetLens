@@ -1,0 +1,20 @@
+{
+  "name": "mindsetlens",
+  "version": "1.0.0",
+  "description": "**AI-Powered Teacher Analytics Platform**",
+  "main": "index.js",
+  "scripts": {
+    "dev:backend": "cd backend && python manage.py runserver",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "concurrently --names backend,frontend --prefix-color blue,green \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build": "cd frontend && npm run build",
+    "setup": "cd backend && python manage.py migrate && cd ../frontend && npm install && npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^9.2.4"
+  }
+}

@@ -101,6 +101,10 @@ module.exports = {
           from: { opacity: '0', transform: 'translateY(8px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
+        'pulse-dot': {
+          '0%, 100%': { opacity: '0.3', transform: 'scale(0.85)' },
+          '50%': { opacity: '1', transform: 'scale(1)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',

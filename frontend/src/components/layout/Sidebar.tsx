@@ -66,12 +66,13 @@ export default function Sidebar() {
 
   return (
     <TooltipProvider delayDuration={300}>
+      {/* Desktop sidebar */}
       <motion.aside
         onHoverStart={() => setExpanded(true)}
         onHoverEnd={() => setExpanded(false)}
         animate={{ width: expanded ? 240 : 56 }}
         transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-        className="relative flex flex-col min-h-screen bg-zinc-950 border-r border-zinc-800/60 shrink-0 overflow-hidden z-30"
+        className="relative hidden md:flex flex-col min-h-screen bg-zinc-950 border-r border-zinc-800/60 shrink-0 overflow-hidden z-30"
       >
         {/* Brand */}
         <div className="flex items-center h-14 px-3.5 border-b border-zinc-800/60 shrink-0">
@@ -295,6 +296,28 @@ export default function Sidebar() {
           )}
         </div>
       </motion.aside>
+
+      {/* Mobile bottom tab bar */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-zinc-950 border-t border-zinc-800/60 flex items-center justify-around px-2 py-1.5 safe-bottom">
+        {navItems.map(({ href, label, Icon }) => {
+          const active =
+            pathname === href ||
+            (href !== '/dashboard' && pathname.startsWith(href));
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors min-w-[52px]',
+                active ? 'text-cyan-400' : 'text-zinc-500'
+              )}
+            >
+              <Icon size={18} />
+              <span className="text-[10px] font-medium">{label}</span>
+            </Link>
+          );
+        })}
+      </nav>
     </TooltipProvider>
   );
 }

@@ -8,7 +8,7 @@ import { getStudent } from '@/lib/api/students';
 import { SurveyResult } from '@/types/survey.types';
 import SurveyForm from '@/components/surveys/SurveyForm';
 import ResultsDisplay from '@/components/surveys/ResultsDisplay';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, X } from 'lucide-react';
 
 export default function SurveyPage() {
   const { id } = useParams<{ id: string }>();
@@ -22,19 +22,19 @@ export default function SurveyPage() {
   if (isLoading) {
     return (
       <div className="max-w-2xl mx-auto space-y-4">
-        <div className="h-7 w-48 bg-[var(--surface-2)] rounded animate-pulse" />
-        <div className="h-96 bg-[var(--surface)] rounded-2xl animate-pulse border border-[var(--border)]" />
+        <div className="h-7 w-48 bg-zinc-800 rounded animate-pulse" />
+        <div className="h-96 bg-zinc-900 rounded-2xl animate-pulse border border-zinc-800" />
       </div>
     );
   }
 
   if (!student) {
     return (
-      <div className="text-center py-12 text-[var(--text-muted)]">
+      <div className="text-center py-12 text-zinc-500">
         <p>Student not found.</p>
         <Link
           href="/dashboard/students"
-          className="text-indigo-400 hover:text-indigo-300 mt-2 inline-block transition-colors"
+          className="text-cyan-400 hover:text-cyan-300 mt-2 inline-block transition-colors"
         >
           Back to students
         </Link>
@@ -47,7 +47,7 @@ export default function SurveyPage() {
       <div>
         <Link
           href={`/dashboard/students/${id}`}
-          className="inline-flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] mb-6 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 mb-6 transition-colors"
         >
           <ArrowLeft size={12} />
           Back to {student.full_name}
@@ -57,16 +57,19 @@ export default function SurveyPage() {
     );
   }
 
+  // Full-screen takeover for the survey
   return (
-    <div>
-      <Link
-        href={`/dashboard/students/${id}`}
-        className="inline-flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] mb-6 transition-colors"
-      >
-        <ArrowLeft size={12} />
-        Back to {student.full_name}
-      </Link>
-      <SurveyForm studentId={id} studentName={student.full_name} onComplete={setResult} />
+    <div className="fixed inset-0 z-50 bg-zinc-950 overflow-auto">
+      <div className="max-w-2xl mx-auto px-6 py-8">
+        <Link
+          href={`/dashboard/students/${id}`}
+          className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 mb-6 transition-colors"
+        >
+          <X size={12} />
+          Exit survey
+        </Link>
+        <SurveyForm studentId={id} studentName={student.full_name} onComplete={setResult} />
+      </div>
     </div>
   );
 }

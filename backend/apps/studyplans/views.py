@@ -100,6 +100,8 @@ class StudyPlanViewSet(viewsets.ReadOnlyModelViewSet):
             ]
             students_data.append({
                 'name': student.full_name,
+                'grade_level': student.get_grade_level_display() if student.grade_level else None,
+                'age': student.age,
                 'mindset_score': float(student.latest_mindset_score or 50),
                 'classification': student.latest_classification or 'mixed',
                 'observations': observations,
@@ -170,6 +172,8 @@ class StudyPlanViewSet(viewsets.ReadOnlyModelViewSet):
             )
             students_data.append({
                 'name': s.full_name,
+                'grade_level': s.get_grade_level_display() if s.grade_level else None,
+                'age': s.age,
                 'mindset_score': float(s.latest_mindset_score or 50),
                 'classification': s.latest_classification or 'mixed',
                 'observations': [

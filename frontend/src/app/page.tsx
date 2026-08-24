@@ -19,7 +19,7 @@ const fadeUp = (i = 0) => ({
 const features = [
   { icon: ClipboardList, title: '12-Question Surveys', desc: 'Structured assessments using Likert scale and open-ended questions based on Carol Dweck\'s research.', color: 'text-sky-400', bg: 'bg-sky-500/10 border-sky-500/20' },
   { icon: Brain, title: 'AI Scoring Engine', desc: 'NLP-powered analysis calculates growth mindset scores with sub-200ms response times.', color: 'text-cyan-400', bg: 'bg-cyan-500/10 border-cyan-500/20' },
-  { icon: Sparkles, title: 'Claude Recommendations', desc: 'Claude AI generates 4-5 personalized, actionable teaching strategies per student.', color: 'text-violet-400', bg: 'bg-violet-500/10 border-violet-500/20' },
+  { icon: Sparkles, title: 'Claude Recommendations', desc: 'Claude AI generates 4-5 personalized, actionable teaching strategies per student.', color: 'text-teal-400', bg: 'bg-teal-500/10 border-teal-500/20' },
   { icon: TrendingUp, title: 'Trend Analytics', desc: 'Track mindset evolution over time with interactive charts and historical data.', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
   { icon: MessageSquare, title: 'Teacher Observations', desc: 'Add behavioral notes that trigger AI recommendation updates in real-time.', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
   { icon: BarChart2, title: 'Class Dashboard', desc: 'Bird\'s-eye view of your entire class with mindset distribution and quick filters.', color: 'text-rose-400', bg: 'bg-rose-500/10 border-rose-500/20' },

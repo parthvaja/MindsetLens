@@ -10,7 +10,9 @@ import { getSurveys } from '@/lib/api/surveys';
 import { SkeletonDetailPage } from '@/components/ui/Skeleton';
 import MindsetBadge from '@/components/students/MindsetBadge';
 import Button from '@/components/ui/Button';
-import TrendChart from '@/components/charts/TrendChart';
+import dynamic from 'next/dynamic';
+
+const TrendChart = dynamic(() => import('@/components/charts/TrendChart'), { ssr: false });
 import RecommendationsList from '@/components/recommendations/RecommendationsList';
 import TeachingAssistantChat from '@/components/recommendations/TeachingAssistantChat';
 import NoteCard from '@/components/notes/NoteCard';

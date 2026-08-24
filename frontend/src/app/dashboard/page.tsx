@@ -7,7 +7,9 @@ import { motion } from 'framer-motion';
 import { getDashboardStats } from '@/lib/api/analytics';
 import { useAuthStore } from '@/lib/store/authStore';
 import { SkeletonCard } from '@/components/ui/Skeleton';
-import DonutChart from '@/components/charts/DonutChart';
+import dynamic from 'next/dynamic';
+
+const DonutChart = dynamic(() => import('@/components/charts/DonutChart'), { ssr: false });
 import {
   Users,
   ClipboardList,

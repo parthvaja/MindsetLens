@@ -21,7 +21,14 @@
       "Bash(ls apps/studyplans/tests)",
       "Bash(ls apps/studyplans/admin.py)",
       "Bash(ls apps/studyplans/apps.py)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(npx shadcn@latest add sheet popover select checkbox alert -y)",
+      "Bash(npx shadcn@latest add sheet -y --overwrite)",
+      "Bash(node .claude/skills/impeccable/hook-admin.mjs ignore-value \"text-zinc-500 hover:bg-rose-500/10 hover:text-rose-400\" \"Intentional: subdued logout text on dark bg, rose highlight on hover\")",
+      "Bash(node .claude/skills/impeccable/hook-admin.mjs ignore-value \"text-zinc-600 hover:bg-rose-500/10 hover:text-rose-400\" \"Intentional: subdued logout icon on dark bg, rose highlight on hover\")",
+      "Bash(node .claude/skills/impeccable/hook-admin.mjs ignore-value \"from-cyan-500/20 to-sky-500/20 border-cyan-500/20 text-cyan-300\" \"Intentional brand accent palette, not AI slop\")",
+      "Bash(node .claude/skills/impeccable/hook-admin.mjs ignore-value \"from-violet-500/20 to-purple-500/20 border-violet-500/20 text-violet-300\" \"Intentional brand accent palette, not AI slop\")",
+      "Bash(npm init:*)"
     ]
   },
   "hooks": {

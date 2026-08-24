@@ -1,3 +1,4 @@
+import React from 'react';
 import { TeacherNote } from '@/types/api.types';
 import { formatDate } from '@/lib/utils/formatters';
 import { Trash2 } from 'lucide-react';
@@ -17,7 +18,7 @@ const sentimentConfig = (
   return { label: 'Neutral', dotColor: 'bg-zinc-500', badgeClass: 'bg-zinc-800 text-zinc-400 border-zinc-700' };
 };
 
-export default function NoteCard({ note, onDelete }: NoteCardProps) {
+function NoteCard({ note, onDelete }: NoteCardProps) {
   const sentiment = sentimentConfig(note.sentiment_score);
 
   return (
@@ -80,3 +81,5 @@ export default function NoteCard({ note, onDelete }: NoteCardProps) {
     </div>
   );
 }
+
+export default React.memo(NoteCard);

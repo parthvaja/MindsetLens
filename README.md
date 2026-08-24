@@ -79,7 +79,8 @@ mindsetlens/
 │   │   ├── surveys/           # Survey submission + scoring
 │   │   ├── notes/             # Teacher observations
 │   │   ├── recommendations/   # AI recommendation generation
-│   │   └── analytics/         # Dashboard stats + trends
+│   │   ├── analytics/         # Dashboard stats + trends
+│   │   └── studyplans/        # Multi-student AI study plan generator
 │   ├── core/                  # Shared utilities
 │   ├── mindsetlens/           # Django project settings
 │   └── requirements/
@@ -91,6 +92,7 @@ mindsetlens/
 │       ├── hooks/             # Custom React hooks
 │       └── types/             # TypeScript type definitions
 ├── nginx/
+├── package.json               # Root scripts (concurrently)
 ├── docker-compose.yml
 └── .env.example
 ```
@@ -105,7 +107,24 @@ mindsetlens/
 - Node.js 18+
 - Git
 
-### Backend Setup
+### Quick Start (Single Command)
+
+```bash
+# Install root dependencies
+npm install
+
+# Set up backend + frontend
+npm run setup
+
+# Start both servers at once
+npm run dev
+```
+
+This launches the Django backend (`localhost:8000`) and Next.js frontend (`localhost:3000`) simultaneously using `concurrently`.
+
+### Manual Setup
+
+#### Backend
 
 ```bash
 cd backend
@@ -132,7 +151,7 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-### Frontend Setup
+#### Frontend
 
 ```bash
 cd frontend
@@ -144,7 +163,15 @@ npm install
 npm run dev
 ```
 
-The backend runs at `http://localhost:8000` and the frontend at `http://localhost:3000`.
+### Root Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Start backend + frontend concurrently |
+| `npm run dev:backend` | Start Django server only |
+| `npm run dev:frontend` | Start Next.js dev server only |
+| `npm run build` | Production build of the frontend |
+| `npm run setup` | Run migrations + install frontend deps + build |
 
 ### Environment Variables
 
@@ -189,6 +216,9 @@ This starts PostgreSQL, Redis, Django, Celery, Next.js, and Nginx.
 | GET | `/api/recommendations/{student_id}/` | Get active recommendations |
 | GET | `/api/analytics/dashboard/` | Dashboard statistics |
 | GET | `/api/analytics/trends/{student_id}/` | Student mindset trends |
+| GET/POST | `/api/studyplans/` | List / create AI study plans |
+| GET | `/api/studyplans/{id}/` | Study plan detail |
+| POST | `/api/studyplans/{id}/chat/` | AI chatbot for a study plan |
 
 Full interactive API docs available at `http://localhost:8000/api/docs/` (Swagger UI).
 
@@ -205,8 +235,11 @@ Claude generates 4-5 categorized teaching strategies based on the student's scor
 ### Trend Tracking
 Interactive charts built with Recharts display mindset score evolution over time. Each assessment and note-triggered update creates a new data point.
 
+### Multi-Student Study Plans
+Select multiple students and generate AI-powered group study plans tailored to each student's mindset profile. Includes an AI chatbot for refining plans in real time.
+
 ### Responsive Design
-Fully mobile-responsive dashboard with animated components, loading states, and toast notifications.
+Fully mobile-responsive dashboard with shadcn/ui components, dark mode support, loading skeletons, and toast notifications.
 
 ---
 
@@ -235,7 +268,7 @@ See the production checklist in the project spec:
 
 ## Built With
 
-Python, Django, Django REST Framework, PostgreSQL, SQLite, Celery, Redis, Next.js, React, TypeScript, Tailwind CSS, Zustand, TanStack Query, Recharts, Framer Motion, GSAP, Anthropic Claude API, TextBlob, Docker, Nginx, JWT
+Python, Django, Django REST Framework, PostgreSQL, SQLite, Celery, Redis, Next.js, React, TypeScript, Tailwind CSS, shadcn/ui, Zustand, TanStack Query, Recharts, Framer Motion, Anthropic Claude API, TextBlob, Docker, Nginx, JWT, concurrently
 
 ---
 
