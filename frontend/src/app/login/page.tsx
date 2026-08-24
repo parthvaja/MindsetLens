@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -19,34 +19,31 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-function FloatingInput({
-  label,
-  type = 'text',
-  icon: Icon,
-  error,
-  ...props
-}: {
-  label: string;
-  type?: string;
-  icon: React.ElementType;
-  error?: string;
-  [key: string]: unknown;
-}) {
+const FloatingInput = forwardRef<
+  HTMLInputElement,
+  {
+    label: string;
+    type?: string;
+    icon: React.ElementType;
+    error?: string;
+  } & React.InputHTMLAttributes<HTMLInputElement>
+>(function FloatingInput({ label, type = 'text', icon: Icon, error, ...props }, ref) {
   return (
     <div>
       <label className="block text-xs font-medium text-zinc-400 mb-1.5">{label}</label>
       <div className="relative">
         <Icon size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
         <input
+          ref={ref}
           type={type}
           className="w-full h-10 pl-10 pr-4 bg-zinc-800/80 border border-zinc-700 rounded-lg text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500/40 transition-all"
-          {...(props as React.InputHTMLAttributes<HTMLInputElement>)}
+          {...props}
         />
       </div>
       {error && <p className="mt-1 text-xs text-rose-400">{error}</p>}
     </div>
   );
-}
+});
 
 export default function LoginPage() {
   const router = useRouter();

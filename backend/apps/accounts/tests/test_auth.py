@@ -15,8 +15,8 @@ def teacher_data():
     return {
         'email': 'teacher@example.com',
         'username': 'teacher1',
-        'first_name': 'Jane',
-        'last_name': 'Smith',
+        'first_name': 'Parth',
+        'last_name': 'Vaja',
         'school_name': 'Springfield Elementary',
         'password': 'StrongPass123!',
         'password2': 'StrongPass123!',

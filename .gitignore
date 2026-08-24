@@ -30,6 +30,12 @@ npm-debug.log*
 *.swp
 *.swo
 
+.agents
+.claude
+.codex
+.CLAUDE.md
+DESIGN_REFERENCE.md
+
 # OS
 .DS_Store
 Thumbs.db

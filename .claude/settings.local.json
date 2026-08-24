@@ -15,7 +15,41 @@
       "Bash(sed -i 's/text-\\\\[#7c8fa0\\\\]/text-\\\\[#8b949e\\\\]/g' D:/git/MindsetLens/frontend/src/components/charts/TrendChart.tsx D:/git/MindsetLens/frontend/src/components/charts/DonutChart.tsx D:/git/MindsetLens/frontend/src/components/charts/BarChart.tsx)",
       "Bash(sed -i 's/#7c8fa0/#8b949e/g' D:/git/MindsetLens/frontend/src/components/charts/TrendChart.tsx D:/git/MindsetLens/frontend/src/components/charts/DonutChart.tsx D:/git/MindsetLens/frontend/src/components/charts/BarChart.tsx)",
       "Bash(npm install:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(curl -s -X POST http://localhost:8000/api/auth/login/ -H \"Content-Type: application/json\" -d '{\"email\":\"teacher@mindsetlens.dev\",\"password\":\"Test1234!\"}')",
+      "Bash(npx next:*)",
+      "Bash(ls apps/studyplans/tests)",
+      "Bash(ls apps/studyplans/admin.py)",
+      "Bash(ls apps/studyplans/apps.py)",
+      "Bash(pip install:*)"
     ]
-  }
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const p=process.argv[1];const f=require('fs');if(f.existsSync(p)){const r=require('child_process').spawnSync(process.execPath,[p],{stdio:'inherit'});process.exit(r.status===null?1:r.status);}\" \"${CLAUDE_PROJECT_DIR}/.claude/skills/impeccable/scripts/hook.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Checking UI changes"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const p=process.argv[1];const f=require('fs');if(f.existsSync(p)){const r=require('child_process').spawnSync(process.execPath,[p],{stdio:'inherit'});process.exit(r.status===null?1:r.status);}\" \"${CLAUDE_PROJECT_DIR}/.claude/skills/impeccable/scripts/hook.mjs\"",
+            "timeout": 30,
+            "statusMessage": "Design deep pass"
+          }
+        ]
+      }
+    ]
+  },
+  "description": "Impeccable design detector: immediate-tier checks after Edit/Write on UI files, full-rule deep pass on Stop."
 }

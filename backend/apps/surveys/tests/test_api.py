@@ -24,8 +24,8 @@ def teacher(db):
         username='teacher1',
         email='teacher@test.com',
         password='TestPass123!',
-        first_name='Jane',
-        last_name='Smith',
+        first_name='Parth',
+        last_name='Vaja',
     )
 
 
